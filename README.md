@@ -119,9 +119,10 @@ JSON-логи. 9 дашбордов Grafana: рудник онлайн, прох
 
 **CI/CD** (GitHub Actions):
 * `ci.yml` — на каждый PR и пуш: ruff + pytest в образе сервисов, eslint + tsc + Vitest, helm lint + kubeconform.
-* `deploy.yml` — пуш в `main`: сборка образов → GHCR → self-hosted runner → `helm upgrade --install` → проверка
-  готовности → `helm rollback` при ошибке. Runner: `bash scripts/runner.sh <токен>` (Docker-контейнер,
-  ServiceAccount с правами только на namespace `digital-mine`).
+* `deploy.yml` — только после зелёного `ci.yml` на пуше в `main` (`workflow_run`, деплоится ровно проверенный коммит;
+  красный CI — деплоя нет): сборка образов → GHCR → self-hosted runner → `helm upgrade --install` → проверка
+  готовности → `helm rollback` при ошибке. Ручной запуск (`workflow_dispatch`) деплоит `main` без ожидания CI.
+  Runner: `bash scripts/runner.sh <токен>` (Docker-контейнер, ServiceAccount с правами только на namespace `digital-mine`).
 
 **Деплой без простоя.** api и web — по 2 пода, RollingUpdate `maxSurge: 1, maxUnavailable: 0` (новый под получает
 трафик только после startup- и readiness-проб, старый гасится после), PDB `minAvailable: 1`, `preStop: sleep 10` —

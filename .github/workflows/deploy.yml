@@ -1,7 +1,10 @@
-# Пуш в main: сборка образов → GHCR → деплой на кластер через self-hosted runner → проверка → откат при ошибке
+# Зелёный CI на пуше в main → сборка образов → GHCR → деплой на кластер через self-hosted runner → проверка →
+# откат при ошибке. Красный CI — деплоя нет. Ручной запуск (workflow_dispatch) — деплой текущего main без ожидания CI.
 name: Deploy
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 concurrency:
@@ -9,14 +12,21 @@ concurrency:
   cancel-in-progress: false
 env:
   REGISTRY: ghcr.io/${{ github.repository_owner }}
+  # коммит, который проверил CI (workflow_run запускается с файлами main, а не с проверенного коммита)
+  SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 jobs:
   build:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SHA }}
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -31,7 +41,7 @@ jobs:
           target: runtime
           push: true
           provenance: false
-          tags: ${{ env.REGISTRY }}/digital-mine-py:${{ github.sha }},${{ env.REGISTRY }}/digital-mine-py:latest
+          tags: ${{ env.REGISTRY }}/digital-mine-py:${{ env.SHA }},${{ env.REGISTRY }}/digital-mine-py:latest
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha,scope=py
           cache-to: type=gha,mode=max,scope=py
@@ -42,7 +52,7 @@ jobs:
           file: services/web/Dockerfile
           push: true
           provenance: false
-          tags: ${{ env.REGISTRY }}/digital-mine-web:${{ github.sha }},${{ env.REGISTRY }}/digital-mine-web:latest
+          tags: ${{ env.REGISTRY }}/digital-mine-web:${{ env.SHA }},${{ env.REGISTRY }}/digital-mine-web:latest
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
@@ -54,6 +64,8 @@ jobs:
       KUBECONFIG: /runner-secrets/kubeconfig
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SHA }}
       - name: Секрет для GHCR (если пакеты приватные)
         env:
           PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
@@ -68,7 +80,7 @@ jobs:
         id: deploy
         run: |
           helm upgrade --install digital-mine charts/digital-mine -n $NS \
-            --set image.registry=${{ env.REGISTRY }}/ --set image.tag=${{ github.sha }} --set image.pullPolicy=IfNotPresent \
+            --set image.registry=${{ env.REGISTRY }}/ --set image.tag=${{ env.SHA }} --set image.pullPolicy=IfNotPresent \
             $PULL_SECRET --wait --timeout 15m
       - name: Проверка готовности
         id: check
@@ -85,4 +97,4 @@ jobs:
         run: |
           helm history digital-mine -n $NS --max 5
           helm rollback digital-mine -n $NS --wait --timeout 10m
-          echo "::error::Деплой ${{ github.sha }} откатан на предыдущую ревизию"
+          echo "::error::Деплой ${{ env.SHA }} откатан на предыдущую ревизию"
