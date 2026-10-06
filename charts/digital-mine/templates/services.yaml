@@ -65,6 +65,10 @@ spec:
             periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 5
+          {{- with $svc.preStopSleep }}
+          lifecycle:
+            preStop: {sleep: {seconds: {{ . }}}}
+          {{- end }}
           resources: {{- toYaml $svc.resources | nindent 12 }}
           volumeMounts:
             - {name: tmp, mountPath: /tmp}

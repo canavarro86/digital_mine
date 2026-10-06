@@ -26,10 +26,12 @@ env:
   DM_EMULATOR_URL: http://emulator:8000
   DM_API_URL: http://api:8000
 
-# Деплой без простоя (api, web): новый под поднимается раньше, чем гасится старый; PDB держит минимум 1 под
+# Деплой без простоя (api, web): новый под поднимается раньше, чем гасится старый; PDB держит минимум 1 под;
+# preStopSleep — пауза перед SIGTERM, пока Traefik убирает под из маршрутов (иначе 502 и обрывы на переключении)
 zeroDowntime: &zeroDowntime
   strategy: {type: RollingUpdate, rollingUpdate: {maxSurge: 1, maxUnavailable: 0}}
   pdb: {minAvailable: 1}
+  preStopSleep: 10
 
 # Сервисы на Python: один образ, разные команды.
 # replicas — число подов. Если у сервиса есть hpa, replicas = minReplicas HPA (поле replicas в Deployment не пишется).

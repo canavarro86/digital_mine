@@ -38,6 +38,10 @@ spec:
           livenessProbe:
             httpGet: {path: /healthz, port: http}
             periodSeconds: 20
+          {{- with .Values.web.preStopSleep }}
+          lifecycle:
+            preStop: {sleep: {seconds: {{ . }}}}
+          {{- end }}
           resources: {{- toYaml .Values.web.resources | nindent 12 }}
           volumeMounts:
             - {name: nginx-conf, mountPath: /etc/nginx/conf.d, readOnly: true}
