@@ -13,7 +13,7 @@ step "Учётная запись Kubernetes для CI"
 kubectl apply -f deploy/runner/rbac.yaml >/dev/null
 SA_TOKEN=$(kubectl -n "$NS" create token ci-deployer --duration=8760h)
 CA=$(kubectl config view --raw -o jsonpath='{.clusters[0].cluster.certificate-authority-data}')
-mkdir -p .secrets/runner && chmod 700 .secrets/runner
+mkdir -p .secrets/runner && chmod 711 .secrets/runner
 cat > .secrets/runner/kubeconfig <<EOK
 apiVersion: v1
 kind: Config
