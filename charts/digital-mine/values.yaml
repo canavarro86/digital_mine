@@ -26,49 +26,74 @@ env:
   DM_EMULATOR_URL: http://emulator:8000
   DM_API_URL: http://api:8000
 
-# Сервисы на Python: один образ, разные команды
+# Деплой без простоя (api, web): новый под поднимается раньше, чем гасится старый; PDB держит минимум 1 под
+zeroDowntime: &zeroDowntime
+  strategy: {type: RollingUpdate, rollingUpdate: {maxSurge: 1, maxUnavailable: 0}}
+  pdb: {minAvailable: 1}
+
+# Сервисы на Python: один образ, разные команды.
+# replicas — число подов. Если у сервиса есть hpa, replicas = minReplicas HPA (поле replicas в Deployment не пишется).
 services:
   api:
     module: api.main:app
     mines: true
+    # без состояния в памяти: сессия — JWT (HS256, общий JWT_SECRET), данные в PostgreSQL/MinIO;
+    # миграции и начальные данные при старте — под pg_advisory_lock (одна реплика заполняет, другие ждут)
+    replicas: 2
+    hpa: {max: 3, cpu: 70}
+    <<: *zeroDowntime
     resources:
       requests: {cpu: 50m, memory: 160Mi}
       limits: {memory: 320Mi}
   calc:
     module: calc.main:app
+    replicas: 1
     resources:
       requests: {cpu: 50m, memory: 90Mi}
       limits: {memory: 160Mi}
-    hpa: {min: 1, max: 3, cpu: 70}
+    hpa: {max: 3, cpu: 70}
   importer:
     module: importer.main:app
     mines: true
+    replicas: 1
     resources:
       requests: {cpu: 20m, memory: 100Mi}
       limits: {memory: 220Mi}
   analyzer:
     module: analyzer.main:app
+    replicas: 1
     resources:
       requests: {cpu: 20m, memory: 120Mi}
       limits: {memory: 500Mi}
   emulator:
     module: emulator.main:app
+    # НЕ дублировать: состояние эмуляции (машины, циклы, сценарии) в памяти пода и фоновый цикл;
+    # две копии слали бы двойные события и расходились бы в состоянии
+    replicas: 1
     resources:
       requests: {cpu: 30m, memory: 80Mi}
       limits: {memory: 160Mi}
   ingest:
     module: ingest.main:app
+    # копии делят durable-консьюмер NATS JetStream — каждое событие обрабатывает одна копия
+    replicas: 1
     resources:
       requests: {cpu: 30m, memory: 60Mi}
       limits: {memory: 120Mi}
-    hpa: {min: 1, max: 3, cpu: 60}
+    hpa: {max: 3, cpu: 60}
   alerts:
     module: alerts.main:app
+    # НЕ дублировать: фоновая проверка правил каждые 30 с без блокировки — копии создавали бы
+    # одни и те же алерты одновременно и дублировали уведомления в Telegram
+    replicas: 1
     resources:
       requests: {cpu: 20m, memory: 70Mi}
       limits: {memory: 130Mi}
 
 web:
+  # статика nginx без состояния
+  replicas: 2
+  <<: *zeroDowntime
   resources:
     requests: {cpu: 10m, memory: 16Mi}
     limits: {memory: 48Mi}

@@ -9,7 +9,11 @@ metadata:
     app.kubernetes.io/component: {{ $name }}
 spec:
   {{- if not $svc.hpa }}
-  replicas: 1
+  {{- /* при HPA число подов ведёт HPA (minReplicas = replicas), иначе helm сбрасывал бы его при каждом деплое */}}
+  replicas: {{ $svc.replicas }}
+  {{- end }}
+  {{- with $svc.strategy }}
+  strategy: {{- toYaml . | nindent 4 }}
   {{- end }}
   revisionHistoryLimit: 3
   selector:
@@ -84,7 +88,22 @@ spec:
   selector: {app.kubernetes.io/component: {{ $name }}}
   ports:
     - {name: http, port: 8000, targetPort: http}
+{{- with $svc.pdb }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $name }}
+  labels: {{- include "dm.labels" $ | nindent 4 }}
+spec:
+  {{- toYaml . | nindent 2 }}
+  selector:
+    matchLabels: {app.kubernetes.io/component: {{ $name }}}
+{{- end }}
 {{- if $svc.hpa }}
+{{- if lt (int $svc.hpa.max) (int $svc.replicas) }}
+{{- fail (printf "services.%s: hpa.max (%v) меньше replicas (%v)" $name $svc.hpa.max $svc.replicas) }}
+{{- end }}
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -93,7 +112,7 @@ metadata:
   labels: {{- include "dm.labels" $ | nindent 4 }}
 spec:
   scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: {{ $name }}}
-  minReplicas: {{ $svc.hpa.min }}
+  minReplicas: {{ $svc.replicas }}
   maxReplicas: {{ $svc.hpa.max }}
   metrics:
     - type: Resource

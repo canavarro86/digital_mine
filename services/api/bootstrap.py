@@ -170,13 +170,30 @@ def sync_grafana_users(retries: int = 30) -> None:
             time.sleep(10)
 
 
-def run_all(background_grafana: bool = True) -> dict:
+def _seed_all() -> dict:
     migrate()
     seed_users()
     seed_settings()
     res = seed_mine()
     res["migrated"] = migrate_data()
     ensure_clickhouse()
+    return res
+
+
+def run_all(background_grafana: bool = True) -> dict:
+    eng = get_engine()
+    if eng.dialect.name == "postgresql":
+        # несколько реплик api стартуют одновременно: начальные данные заполняет одна, остальные ждут
+        with eng.connect() as c:
+            c.execute(text("SELECT pg_advisory_lock(424243)"))
+            c.commit()
+            try:
+                res = _seed_all()
+            finally:
+                c.execute(text("SELECT pg_advisory_unlock(424243)"))
+                c.commit()
+    else:
+        res = _seed_all()
     if background_grafana:
         threading.Thread(target=sync_grafana_users, daemon=True, name="grafana-users").start()
     else:
