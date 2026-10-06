@@ -1,0 +1,12 @@
+# Конфигурация nginx интерфейса (web.nginxConf в values). Монтируется в /etc/nginx/conf.d/default.conf;
+# при изменении под web перезапускается сам (аннотация checksum/config в web.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-nginx
+  labels:
+    {{- include "dm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+data:
+  default.conf: |
+    {{- .Values.web.nginxConf | nindent 4 }}
