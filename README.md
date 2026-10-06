@@ -123,6 +123,16 @@ JSON-логи. 9 дашбордов Grafana: рудник онлайн, прох
   готовности → `helm rollback` при ошибке. Runner: `bash scripts/runner.sh <токен>` (Docker-контейнер,
   ServiceAccount с правами только на namespace `digital-mine`).
 
+**Деплой без простоя.** api и web — по 2 пода, RollingUpdate `maxSurge: 1, maxUnavailable: 0` (новый под получает
+трафик только после startup- и readiness-проб, старый гасится после), PDB `minAvailable: 1`, `preStop: sleep 10` —
+Traefik успевает убрать под из маршрутов до SIGTERM. У calc, importer, analyzer — `preStop: sleep 5` (к ним api ходит
+через Service). Диагностика: OOMKilled нет (перезапусков 0, api 122–138 Mi при лимите 320 Mi), uvicorn открывает порт
+только после завершения startup, поэтому проба не пропускает неготовый под. Замер: `bash scripts/probe.sh` (опрос
+`/api/i18n/languages` и `/` каждые 0,2 с) во время деплоя.
+
+**HPA api.** Request CPU 100m по замеру `kubectl top`: в простое 3–10m на под → 2 реплики; эмулятор ×60 даёт ≈ 600m →
+3 реплики. Эмулятор ходит в api без keep-alive, иначе всё его соединение попадает в один под и третья реплика пустует.
+
 ## 5. Требования и установка
 
 * Linux, Docker 24+, 8 ГБ ОЗУ (стек занимает ≈ 5 ГБ), 2 ядра, 15 ГБ диска, свободный порт `127.0.0.1:9999`.

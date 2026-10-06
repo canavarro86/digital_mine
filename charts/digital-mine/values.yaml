@@ -34,6 +34,8 @@ zeroDowntime: &zeroDowntime
   preStopSleep: 10
 
 # Сервисы на Python: один образ, разные команды.
+# preStopSleep у calc, importer, analyzer: api ходит к ним через ClusterIP, пауза даёт kube-proxy убрать старый под
+# из Service до SIGTERM (иначе запрос api на переключении получает connection refused → 502 пользователю).
 # replicas — число подов. Если у сервиса есть hpa, replicas = minReplicas HPA (поле replicas в Deployment не пишется).
 services:
   api:
@@ -42,13 +44,16 @@ services:
     # без состояния в памяти: сессия — JWT (HS256, общий JWT_SECRET), данные в PostgreSQL/MinIO;
     # миграции и начальные данные при старте — под pg_advisory_lock (одна реплика заполняет, другие ждут)
     replicas: 2
+    # замер kubectl top: без нагрузки 3–10m и 122–138Mi на под; под эмулятором ×60 ≈ 600m суммарно.
+    # 100m × 70% = 70m в среднем на под: в простое 2 реплики, под нагрузкой эмулятора — 3
     hpa: {max: 3, cpu: 70}
     <<: *zeroDowntime
     resources:
-      requests: {cpu: 50m, memory: 160Mi}
+      requests: {cpu: 100m, memory: 160Mi}
       limits: {memory: 320Mi}
   calc:
     module: calc.main:app
+    preStopSleep: 5
     replicas: 1
     resources:
       requests: {cpu: 50m, memory: 90Mi}
@@ -56,6 +61,7 @@ services:
     hpa: {max: 3, cpu: 70}
   importer:
     module: importer.main:app
+    preStopSleep: 5
     mines: true
     replicas: 1
     resources:
@@ -63,6 +69,7 @@ services:
       limits: {memory: 220Mi}
   analyzer:
     module: analyzer.main:app
+    preStopSleep: 5
     replicas: 1
     resources:
       requests: {cpu: 20m, memory: 120Mi}

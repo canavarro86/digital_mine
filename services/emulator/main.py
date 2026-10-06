@@ -50,7 +50,10 @@ def check_token(x_internal_token: str | None = Header(default=None)):
 class Api:
     def __init__(self):
         s = get_settings()
+        # без keep-alive: каждое соединение заново балансируется Service между подами api,
+        # иначе вся нагрузка эмулятора идёт в один под и HPA добавляет пустые реплики
         self.c = httpx.AsyncClient(base_url=s.api_url, timeout=120,
+                                   limits=httpx.Limits(max_keepalive_connections=0),
                                    headers={"x-internal-token": s.internal_token, "x-acting-user": "emulator"})
 
     async def get(self, path, **params):
