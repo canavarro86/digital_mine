@@ -121,13 +121,14 @@ JSON-логи. 9 дашбордов Grafana: рудник онлайн, прох
 * `ci.yml` — на каждый PR и пуш: ruff + pytest в образе сервисов, eslint + tsc + Vitest, helm lint + kubeconform.
 * `deploy.yml` — только после зелёного `ci.yml` на пуше в `main` (`workflow_run`, деплоится ровно проверенный коммит;
   красный CI — деплоя нет): сборка образов → GHCR → self-hosted runner → `helm upgrade --install` → проверка
-  готовности → `helm rollback` при ошибке. Ручной запуск (`workflow_dispatch`) деплоит `main` без ожидания CI.
+  готовности → `helm rollback` при ошибке. Ручной запуск (`workflow_dispatch`) сначала проверяет, что последний CI
+  для этого коммита зелёный, иначе останавливается с ошибкой и ссылкой на запуск CI.
   Runner: `bash scripts/runner.sh <токен>` (Docker-контейнер, ServiceAccount с правами только на namespace `digital-mine`).
 
 **Деплой без простоя.** api и web — по 2 пода, RollingUpdate `maxSurge: 1, maxUnavailable: 0` (новый под получает
 трафик только после startup- и readiness-проб, старый гасится после), PDB `minAvailable: 1`, `preStop: sleep 10` —
 Traefik успевает убрать под из маршрутов до SIGTERM. У calc, importer, analyzer — `preStop: sleep 5` (к ним api ходит
-через Service). Диагностика: OOMKilled нет (перезапусков 0, api 122–138 Mi при лимите 320 Mi), uvicorn открывает порт
+через Service). emulator и alerts — `strategy: Recreate`: при деплое не бывает двух копий. Диагностика: OOMKilled нет (перезапусков 0, api 122–138 Mi при лимите 320 Mi), uvicorn открывает порт
 только после завершения startup, поэтому проба не пропускает неготовый под. Замер: `bash scripts/probe.sh` (опрос
 `/api/i18n/languages` и `/` каждые 0,2 с) во время деплоя.
 

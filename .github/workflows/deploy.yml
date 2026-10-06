@@ -1,5 +1,6 @@
 # Зелёный CI на пуше в main → сборка образов → GHCR → деплой на кластер через self-hosted runner → проверка →
-# откат при ошибке. Красный CI — деплоя нет. Ручной запуск (workflow_dispatch) — деплой текущего main без ожидания CI.
+# откат при ошибке. Красный CI — деплоя нет. Ручной запуск (workflow_dispatch) деплоит выбранный коммит, только если
+# последний запуск CI для него завершился успешно.
 name: Deploy
 on:
   workflow_run:
@@ -23,7 +24,24 @@ jobs:
     permissions:
       contents: read
       packages: write
+      actions: read
     steps:
+      - name: Проверка CI для коммита (ручной запуск)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run=$(gh api "repos/${{ github.repository }}/actions/workflows/ci.yml/runs?head_sha=$SHA&per_page=1" \
+            --jq '.workflow_runs[0] // empty | "\(.status) \(.conclusion) \(.html_url)"')
+          read -r status conclusion url <<< "$run"
+          if [ -z "$run" ]; then
+            echo "::error::CI для коммита $SHA не запускался — деплой остановлен"; exit 1
+          elif [ "$status" != completed ]; then
+            echo "::error::CI для коммита $SHA ещё идёт ($status): $url — дождитесь окончания"; exit 1
+          elif [ "$conclusion" != success ]; then
+            echo "::error::CI для коммита $SHA не прошёл ($conclusion): $url — деплой остановлен"; exit 1
+          fi
+          echo "CI зелёный: $url"
       - uses: actions/checkout@v5
         with:
           ref: ${{ env.SHA }}
