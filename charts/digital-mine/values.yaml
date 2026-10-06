@@ -79,8 +79,9 @@ services:
     # НЕ дублировать: состояние эмуляции (машины, циклы, сценарии) в памяти пода и фоновый цикл;
     # две копии слали бы двойные события и расходились бы в состоянии
     replicas: 1
-    # Recreate: при деплое старый под гасится до запуска нового (RollingUpdate на время раската держал бы две копии)
-    strategy: {type: Recreate}
+    # одна копия и при деплое: старый под гасится до запуска нового (как Recreate; type Recreate не годится —
+    # helm server-side apply не убирает rollingUpdate по умолчанию, и API отклоняет Deployment)
+    strategy: &singleCopy {type: RollingUpdate, rollingUpdate: {maxSurge: 0, maxUnavailable: 1}}
     resources:
       requests: {cpu: 30m, memory: 80Mi}
       limits: {memory: 160Mi}
@@ -97,7 +98,7 @@ services:
     # НЕ дублировать: фоновая проверка правил каждые 30 с без блокировки — копии создавали бы
     # одни и те же алерты одновременно и дублировали уведомления в Telegram
     replicas: 1
-    strategy: {type: Recreate}
+    strategy: *singleCopy
     resources:
       requests: {cpu: 20m, memory: 70Mi}
       limits: {memory: 130Mi}

@@ -14,10 +14,6 @@ spec:
   {{- end }}
   {{- with $svc.strategy }}
   strategy: {{- toYaml . | nindent 4 }}
-    {{- if eq .type "Recreate" }}
-    {{- /* сброс rollingUpdate, оставшегося от RollingUpdate по умолчанию: при Recreate API его запрещает */}}
-    rollingUpdate: null
-    {{- end }}
   {{- end }}
   revisionHistoryLimit: 3
   selector:

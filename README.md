@@ -128,7 +128,7 @@ JSON-логи. 9 дашбордов Grafana: рудник онлайн, прох
 **Деплой без простоя.** api и web — по 2 пода, RollingUpdate `maxSurge: 1, maxUnavailable: 0` (новый под получает
 трафик только после startup- и readiness-проб, старый гасится после), PDB `minAvailable: 1`, `preStop: sleep 10` —
 Traefik успевает убрать под из маршрутов до SIGTERM. У calc, importer, analyzer — `preStop: sleep 5` (к ним api ходит
-через Service). emulator и alerts — `strategy: Recreate`: при деплое не бывает двух копий. Диагностика: OOMKilled нет (перезапусков 0, api 122–138 Mi при лимите 320 Mi), uvicorn открывает порт
+через Service). emulator и alerts — `maxSurge: 0, maxUnavailable: 1` (как Recreate): при деплое не бывает двух копий. Диагностика: OOMKilled нет (перезапусков 0, api 122–138 Mi при лимите 320 Mi), uvicorn открывает порт
 только после завершения startup, поэтому проба не пропускает неготовый под. Замер: `bash scripts/probe.sh` (опрос
 `/api/i18n/languages` и `/` каждые 0,2 с) во время деплоя.
 
