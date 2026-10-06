@@ -1,0 +1,14 @@
+# Стартовая библиотека ВВ и средств инициирования (значения типовые, по открытым паспортам производителей)
+explosives:
+  - {code: EMUL_BULK, name: "Эмульсия наливная (типа Subtek / Fortis)", manufacturer: "generic", type: emulsion, density_min: 1.00, density_max: 1.20, vod: 5200, rws: 80, rbs: 110, heat: 2900, gas: 950, water_resistance: full, crit_diameter: 32, min_diameter: 35, price: 1.35}
+  - {code: ANFO, name: "АНФО (гранулит)", manufacturer: "generic", type: anfo, density_min: 0.80, density_max: 0.95, vod: 3800, rws: 100, rbs: 100, heat: 3800, gas: 975, water_resistance: none, crit_diameter: 32, min_diameter: 38, price: 0.95}
+  - {code: EMUL_CART_32, name: "Эмульсия патронированная Ø32 (типа Senatel / Riogel)", manufacturer: "generic", type: cartridge, density_min: 1.15, density_max: 1.20, vod: 5000, rws: 85, rbs: 120, heat: 3050, gas: 930, water_resistance: full, crit_diameter: 25, min_diameter: 25, cart_diameter: 32, cart_length: 0.40, cart_mass: 0.35, price: 2.40}
+  - {code: AMMONITE_6ZHV, name: "Аммонит 6ЖВ патронированный Ø32", manufacturer: "generic", type: cartridge, density_min: 1.00, density_max: 1.20, vod: 4200, rws: 105, rbs: 125, heat: 4300, gas: 895, water_resistance: limited, crit_diameter: 12, min_diameter: 25, cart_diameter: 32, cart_length: 0.25, cart_mass: 0.25, price: 2.10}
+  - {code: EMUL_SMOOTH_25, name: "Контурная эмульсия Ø25 в оболочке", manufacturer: "generic", type: cartridge, density_min: 1.10, density_max: 1.15, vod: 4500, rws: 75, rbs: 95, heat: 2700, gas: 930, water_resistance: full, crit_diameter: 17, min_diameter: 17, cart_diameter: 25, cart_length: 0.50, cart_mass: 0.28, price: 2.80}
+initiation:
+  - {code: PRIMER_150, name: "Боевик 150 г (пентолит)", kind: primer, props: {mass_g: 150}, price: 3.2}
+  - {code: PRIMER_400, name: "Боевик 400 г (пентолит)", kind: primer, props: {mass_g: 400}, price: 5.8}
+  - {code: NONEL_MS, name: "НСИ, короткозамедленная серия MS", kind: nonel, props: {series_ms: [0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500]}, price: 4.5}
+  - {code: NONEL_LP, name: "НСИ, длиннозамедленная серия LP", kind: nonel, props: {series_ms: [0, 100, 200, 300, 400, 500, 600, 800, 1000, 1400, 1800, 2400, 3000, 3800, 4600, 5500, 6400]}, price: 4.8}
+  - {code: EDD_15000, name: "ЭДД (электронный), 0–15000 мс, шаг 1 мс", kind: edd, props: {min_ms: 0, max_ms: 15000, step_ms: 1, max_per_line: 300, min_interval_ms: 8}, price: 14.0}
+  - {code: DETCORD_10, name: "Детонирующий шнур 10 г/м", kind: detcord, props: {g_per_m: 10}, price: 0.6}

@@ -1,0 +1,76 @@
+# Внешние компоненты + наш чарт. Запуск: make up (или helmfile -f deploy/helmfile.yaml sync)
+# Пароли не хранятся здесь: все чарты читают Secret dm-secrets (создаёт scripts/up.sh из .secrets/).
+repositories:
+  - name: groundhog2k
+    url: https://groundhog2k.github.io/helm-charts/
+  - name: minio
+    url: https://charts.min.io/
+  - name: nats
+    url: https://nats-io.github.io/k8s/helm/charts/
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+
+helmDefaults:
+  wait: true
+  timeout: 1200
+  createNamespace: true
+
+releases:
+  # ---------- данные ----------
+  - name: postgres
+    namespace: digital-mine
+    chart: groundhog2k/postgres
+    version: 1.6.8
+    labels: {tier: data}
+    values: [values/postgres.yaml]
+  - name: clickhouse
+    namespace: digital-mine
+    chart: ./charts/clickhouse
+    labels: {tier: data}
+    values: [values/clickhouse.yaml]
+  - name: minio
+    namespace: digital-mine
+    chart: minio/minio
+    version: 5.4.0
+    labels: {tier: data}
+    values: [values/minio.yaml]
+  - name: nats
+    namespace: digital-mine
+    chart: nats/nats
+    version: 2.15.0
+    labels: {tier: data}
+    values: [values/nats.yaml]
+  # ---------- мониторинг ----------
+  - name: prometheus
+    namespace: monitoring
+    chart: prometheus-community/prometheus
+    version: 29.35.0
+    labels: {tier: monitoring}
+    values: [values/prometheus.yaml]
+  - name: loki
+    namespace: monitoring
+    chart: grafana/loki
+    version: 7.3.0
+    labels: {tier: monitoring}
+    values: [values/loki.yaml]
+  - name: promtail
+    namespace: monitoring
+    chart: grafana/promtail
+    version: 6.17.1
+    labels: {tier: monitoring}
+    values: [values/promtail.yaml]
+  - name: grafana
+    namespace: monitoring
+    chart: grafana/grafana
+    version: 10.5.15
+    labels: {tier: monitoring}
+    values: [values/grafana.yaml.gotmpl]
+  # ---------- наша система ----------
+  - name: digital-mine
+    namespace: digital-mine
+    chart: ../charts/digital-mine
+    labels: {tier: app}
+    needs: [digital-mine/postgres, digital-mine/clickhouse, digital-mine/minio, digital-mine/nats]
+    values: [values/digital-mine.yaml.gotmpl]

@@ -1,0 +1,79 @@
+# Образы. До CI/CD: локальная сборка (dm-py:dev, dm-web:dev) + k3d image import.
+# После CI/CD: registry=ghcr.io/canavarro86/, tag=<git sha>.
+image:
+  registry: ""
+  py: digital-mine-py
+  web: digital-mine-web
+  tag: dev
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+existingSecret: dm-secrets
+# Папка mines/ проекта, смонтированная в узел k3d (scripts/up.sh)
+minesHostPath: /mnt/mines
+
+env:
+  DM_LOG_LEVEL: INFO
+  DM_PG_HOST: postgres
+  DM_CH_HOST: clickhouse
+  DM_MINIO_ENDPOINT: minio:9000
+  DM_NATS_URL: nats://nats:4222
+  DM_PROMETHEUS_URL: http://prometheus-server.monitoring.svc
+  DM_GRAFANA_URL: http://grafana.monitoring.svc/grafana
+  DM_CALC_URL: http://calc:8000
+  DM_IMPORTER_URL: http://importer:8000
+  DM_ANALYZER_URL: http://analyzer:8000
+  DM_EMULATOR_URL: http://emulator:8000
+  DM_API_URL: http://api:8000
+
+# Сервисы на Python: один образ, разные команды
+services:
+  api:
+    module: api.main:app
+    mines: true
+    resources:
+      requests: {cpu: 50m, memory: 160Mi}
+      limits: {memory: 320Mi}
+  calc:
+    module: calc.main:app
+    resources:
+      requests: {cpu: 50m, memory: 90Mi}
+      limits: {memory: 160Mi}
+    hpa: {min: 1, max: 3, cpu: 70}
+  importer:
+    module: importer.main:app
+    mines: true
+    resources:
+      requests: {cpu: 20m, memory: 100Mi}
+      limits: {memory: 220Mi}
+  analyzer:
+    module: analyzer.main:app
+    resources:
+      requests: {cpu: 20m, memory: 120Mi}
+      limits: {memory: 500Mi}
+  emulator:
+    module: emulator.main:app
+    resources:
+      requests: {cpu: 30m, memory: 80Mi}
+      limits: {memory: 160Mi}
+  ingest:
+    module: ingest.main:app
+    resources:
+      requests: {cpu: 30m, memory: 60Mi}
+      limits: {memory: 120Mi}
+    hpa: {min: 1, max: 3, cpu: 60}
+  alerts:
+    module: alerts.main:app
+    resources:
+      requests: {cpu: 20m, memory: 70Mi}
+      limits: {memory: 130Mi}
+
+web:
+  resources:
+    requests: {cpu: 10m, memory: 16Mi}
+    limits: {memory: 48Mi}
+
+# Необязательно: Telegram для алертов
+telegram:
+  botToken: ""
+  chatId: ""

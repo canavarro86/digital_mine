@@ -1,0 +1,8 @@
+line-length = 140
+target-version = "py312"
+[lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E731", "E741"]
+[lint.per-file-ignores]
+"core/pdf.py" = ["E501"]
+"core/mine_gen.py" = ["E501"]

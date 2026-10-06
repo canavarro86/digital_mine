@@ -1,0 +1,55 @@
+# Системные настройки (стартовые значения; рабочие хранятся в PostgreSQL, правятся в «Настройках»)
+default_language: ru
+default_user_timezone: Asia/Bangkok
+active_mine: default_mine
+mines_path: mines
+
+ai:
+  provider: demo            # demo (без ключа) | anthropic | openai | deepseek
+  model: ""
+  monthly_budget_usd: 20
+  max_requests_per_day: 50
+  providers:
+    anthropic:
+      label: Claude (Anthropic)
+      models:
+        claude-opus-5-5: {price_in: 4.0, price_out: 20.0}
+        claude-sonnet-5-5: {price_in: 2.0, price_out: 10.0}
+        claude-haiku-4-5: {price_in: 1.0, price_out: 5.0}
+      default_model: claude-opus-5-5
+    openai:
+      label: ChatGPT (OpenAI)
+      url: https://api.openai.com/v1/chat/completions
+      models:
+        gpt-5: {price_in: 1.25, price_out: 10.0}
+        gpt-5-mini: {price_in: 0.25, price_out: 2.0}
+      default_model: gpt-5
+    deepseek:
+      label: DeepSeek
+      url: https://api.deepseek.com/chat/completions
+      models:
+        deepseek-chat: {price_in: 0.28, price_out: 0.42}
+        deepseek-reasoner: {price_in: 0.28, price_out: 0.42}
+      default_model: deepseek-chat
+
+telegram:
+  enabled: false
+  bot_token: ""   # задаётся в интерфейсе или через TELEGRAM_BOT_TOKEN
+  chat_id: ""
+
+alerts:
+  machine_idle_minutes: 30
+  blasters_wait_hours: 2
+  kish_min: 0.80
+  overbreak_pct_max: 15
+  extra_rock_t_per_day_max: 150
+  elos_max_m: 1.0
+  drill_deviation_pct_max: 3
+  charge_over_pct_max: 10
+  permit_warn_days: 14
+  tech_latency_s: 60
+  tech_pod_memory_pct: 90
+  tech_disk_pct: 85
+
+emulator:
+  speed: 60

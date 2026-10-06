@@ -1,0 +1,187 @@
+{
+ "uid": "dm-ai",
+ "title": "7. ИИ",
+ "tags": [
+  "digital-mine"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "refresh": "30s",
+ "time": {
+  "from": "now-7d",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "type": "stat",
+   "title": "Запросов",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 5
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT count() AS запросов, countIf(cache_hit=1) AS из_кэша FROM ai WHERE $__timeFilter(ts)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "stat",
+   "title": "Токены",
+   "gridPos": {
+    "x": 8,
+    "y": 0,
+    "w": 8,
+    "h": 5
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT sum(tokens_in) AS вход, sum(tokens_out) AS выход FROM ai WHERE $__timeFilter(ts)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "stat",
+   "title": "Затраты, $",
+   "gridPos": {
+    "x": 16,
+    "y": 0,
+    "w": 8,
+    "h": 5
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT round(sum(cost),4) AS USD FROM ai WHERE $__timeFilter(ts)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD"
+    },
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "barchart",
+   "title": "Запросы по модулям",
+   "gridPos": {
+    "x": 0,
+    "y": 5,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT module AS модуль, count() AS запросов FROM ai WHERE $__timeFilter(ts) GROUP BY module",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "xTickLabelRotation": -30,
+    "showValue": "auto",
+    "legend": {
+     "showLegend": true
+    }
+   }
+  },
+  {
+   "type": "table",
+   "title": "Журнал",
+   "gridPos": {
+    "x": 12,
+    "y": 5,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "editorMode": "code",
+     "format": "table",
+     "rawSql": "SELECT to_char(ts,'DD.MM HH24:MI') AS время, username AS кто, module AS модуль, provider AS провайдер, model AS модель, tokens_in, tokens_out, round(cost::numeric,4) AS usd, cache_hit AS кэш FROM ai_requests ORDER BY id DESC LIMIT 50",
+     "refId": "A",
+     "rawQuery": true
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true
+   }
+  }
+ ],
+ "editable": true
+}

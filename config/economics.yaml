@@ -1,0 +1,16 @@
+# Цены, извлечение, затраты (валюта — по настройкам рудника, по умолчанию USD)
+currency: USD
+metal_prices:
+  Cu: {price: 9800, unit: "USD/t"}
+  Au: {price: 3100, unit: "USD/oz"}
+recovery: {Cu: 0.90, Au: 0.85}
+nsr_factor: 0.82              # доля стоимости металла, доходящая до рудника (NSR)
+costs:
+  mining_per_t: 28            # добыча, USD/т
+  haulage_per_t: 4.5          # откатка, USD/т
+  processing_per_t: 14        # переработка, USD/т
+  waste_haulage_per_t: 5.5    # вывоз лишней породы, USD/т
+  support_per_m2: 38          # дополнительное крепление (торкрет+анкеры), USD/м²
+  drilling_per_m: 12          # бурение, USD/м
+  charging_per_kg: 0.6        # работа заряжания, USD/кг
+  downtime_per_h: 650         # простой камеры/забоя, USD/ч

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: digital-mine
+description: UG Blast Loop — система БВР для подземных рудников (наши сервисы)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

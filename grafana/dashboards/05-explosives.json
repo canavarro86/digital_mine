@@ -1,0 +1,151 @@
+{
+ "uid": "dm-expl",
+ "title": "5. ВВ: план против факта",
+ "tags": [
+  "digital-mine"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "refresh": "30s",
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "type": "timeseries",
+   "title": "ВВ план и факт по часам, кг",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT toStartOfHour(ts) AS t, sumIf(toFloat64OrZero(JSONExtractString(payload,'plan_kg')), type='charge') AS план, sumIf(toFloat64OrZero(JSONExtractString(payload,'fact_kg')), type='charge') AS факт FROM events WHERE $__timeFilter(ts) GROUP BY t ORDER BY t",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "barchart",
+   "title": "Перерасход по забоям, кг",
+   "gridPos": {
+    "x": 0,
+    "y": 8,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT face AS забой, round(sum(explosive_fact_kg - explosive_plan_kg),1) AS перерасход FROM cycles WHERE $__timeFilter(ts) GROUP BY face ORDER BY перерасход DESC",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "xTickLabelRotation": -30,
+    "showValue": "auto",
+    "legend": {
+     "showLegend": true
+    }
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Отклонение факта от плана, %",
+   "gridPos": {
+    "x": 12,
+    "y": 8,
+    "w": 6,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT round((sum(explosive_fact_kg)-sum(explosive_plan_kg))/greatest(sum(explosive_plan_kg),1)*100,1) AS проц FROM cycles WHERE $__timeFilter(ts)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "stat",
+   "title": "Отказы при заряжании",
+   "gridPos": {
+    "x": 18,
+    "y": 8,
+    "w": 6,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT sum(toFloat64OrZero(JSONExtractString(payload,'misfires'))) AS отказы FROM events WHERE type='charge' AND $__timeFilter(ts)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  }
+ ],
+ "editable": true
+}

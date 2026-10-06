@@ -1,0 +1,12 @@
+.git
+.secrets
+.cache
+backups
+mines
+tz.md
+**/node_modules
+**/dist
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+services/web/test-results

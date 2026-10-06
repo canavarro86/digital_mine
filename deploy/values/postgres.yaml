@@ -1,0 +1,25 @@
+settings:
+  existingSecret: dm-secrets
+  superuser: {secretKey: PG_SUPERUSER}
+  superuserPassword: {secretKey: PG_SUPERUSER_PASSWORD}
+userDatabase:
+  existingSecret: dm-secrets
+  name: {secretKey: PG_DATABASE}
+  user: {secretKey: PG_USER}
+  password: {secretKey: PG_PASSWORD}
+resources:
+  requests: {cpu: 50m, memory: 128Mi}
+  limits: {memory: 300Mi}
+storage:
+  requestedSize: 2Gi
+customConfig: |
+  listen_addresses = '*'
+  max_connections = 60
+  shared_buffers = 64MB
+  effective_cache_size = 128MB
+  work_mem = 4MB
+  maintenance_work_mem = 32MB
+  wal_buffers = 2MB
+  max_wal_size = 256MB
+  log_timezone = 'UTC'
+  timezone = 'UTC'

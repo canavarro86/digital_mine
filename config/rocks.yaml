@@ -1,0 +1,19 @@
+# Библиотека пород и параметры геологии. Новые параметры добавляются в extra_params без программиста.
+water_levels: [dry, damp, dripping, flowing, inflow]
+fracture_categories:
+  1: {name: "I — монолитная", spacing_m: ">1.5", structure_coef: 1.1}
+  2: {name: "II — малотрещиноватая", spacing_m: "1.0–1.5", structure_coef: 1.2}
+  3: {name: "III — среднетрещиноватая", spacing_m: "0.5–1.0", structure_coef: 1.4}
+  4: {name: "IV — сильнотрещиноватая", spacing_m: "0.1–0.5", structure_coef: 1.6}
+  5: {name: "V — раздробленная", spacing_m: "<0.1", structure_coef: 2.0}
+fault_types: [fault, cleavage, crush_zone, blocky]
+extra_params:
+  - {key: abrasiveness, label: {ru: "Абразивность", en: "Abrasiveness", es: "Abrasividad"}, unit: "мг", type: number}
+  - {key: sulfides, label: {ru: "Сульфиды", en: "Sulphides", es: "Sulfuros"}, unit: "%", type: number}
+rocks:
+  - {code: ORE_QZ_CU_AU, name: "Кварц-сульфидная руда (Cu-Au)", kind: ore, f: 12, ucs: 140, density: 2.9, fracture_cat: 3, fracture_spacing: 0.7, rqd: 70, rmr: 62, water: dry, grades: {Cu: {value: 1.4, unit: "%"}, Au: {value: 2.1, unit: "g/t"}}}
+  - {code: ANDESITE, name: "Андезит (вмещающая)", kind: waste, f: 14, ucs: 160, density: 2.75, fracture_cat: 2, fracture_spacing: 1.2, rqd: 80, rmr: 68, water: dry}
+  - {code: ANDESITE_FRAC, name: "Андезит трещиноватый", kind: waste, f: 9, ucs: 95, density: 2.7, fracture_cat: 4, fracture_spacing: 0.3, rqd: 40, rmr: 45, water: damp}
+  - {code: DIORITE, name: "Диорит", kind: waste, f: 16, ucs: 190, density: 2.85, fracture_cat: 2, fracture_spacing: 1.4, rqd: 85, rmr: 72, water: dry}
+  - {code: CONTACT_ALT, name: "Контакт, изменённые породы", kind: contact, f: 7, ucs: 70, density: 2.65, fracture_cat: 4, fracture_spacing: 0.25, rqd: 35, rmr: 40, water: dripping}
+  - {code: HW_WEAK, name: "Слабый висячий бок (серицит)", kind: waste, f: 5, ucs: 45, density: 2.6, fracture_cat: 5, fracture_spacing: 0.08, rqd: 20, rmr: 30, water: damp}

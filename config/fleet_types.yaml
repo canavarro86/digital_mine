@@ -1,0 +1,80 @@
+# Типы машин: подписи, допустимые виды работ (work — стартовые значения, правятся в «Флот → Типы и работы»),
+# какие забои машина бурит (faces: dev — проходческие, stope — очистные камеры), состав параметров
+# и значения для «Нестандартной установки».
+# Названия, единицы и подсказки параметров — в locales/*.json (fleet.param, fleet.hint), единицы — units.*.
+types:
+  dev_drill:
+    label: {ru: "Проходческая буровая", en: "Development jumbo", es: "Jumbo de desarrollo"}
+    examples: [Boomer, Axera, Sandvik DD]
+    work: [drilling]
+    faces: dev
+    params: [booms, dia_min, dia_max, max_length, setup_h, drill_rate_mph, reposition_min, width_m, height_m,
+             cover_w_min, cover_h_min, cover_w_max, cover_h_max, rock_drill, impact_kw]
+    defaults: {booms: 2, dia_min: 38, dia_max: 64, max_length: 5.2, drill_rate_mph: 90, setup_h: 0.5, reposition_min: 0.5}
+  ring_drill:
+    label: {ru: "Станок глубокого бурения", en: "Longhole drill", es: "Perforadora radial"}
+    examples: [Simba, Sandvik DL]
+    work: [ring_drilling]
+    faces: stope
+    params: [booms, dia_min, dia_max, max_length, setup_h, drill_rate_mph, reposition_min, width_m, height_m,
+             cover_w_min, cover_h_min, cover_w_max, cover_h_max, rock_drill, impact_kw]
+    defaults: {booms: 1, dia_min: 64, dia_max: 115, max_length: 40, drill_rate_mph: 35, setup_h: 0.7, reposition_min: 3}
+  lhd:
+    label: {ru: "ПДМ", en: "LHD", es: "LHD (cargador)"}
+    examples: [Scooptram ST14, Sandvik LH517i]
+    work: [mucking]
+    params: [bucket_m3, payload_t, mucking_tph, width_m, height_m]
+    defaults: {bucket_m3: 6, payload_t: 14, mucking_tph: 120}
+  charger:
+    label: {ru: "Зарядная машина", en: "Charger", es: "Cargador de explosivos"}
+    examples: [Normet Charmec]
+    work: [charging]
+    params: [explosive_type, charge_kg_min, hose_m, width_m, height_m]
+    defaults: {explosive_type: emulsion, charge_kg_min: 7, hose_m: 40}
+  bolter:
+    label: {ru: "Машина для крепления", en: "Bolter", es: "Empernador"}
+    examples: [Boltec]
+    work: [support]
+    params: [bolts_per_h, width_m, height_m]
+    defaults: {bolts_per_h: 12}
+  aux:
+    label: {ru: "Вспомогательное оборудование", en: "Auxiliary equipment", es: "Equipo auxiliar"}
+    examples: [Minetruck, Utilift]
+    work: [aux, scaling]
+    params: [payload_t, width_m, height_m]
+    defaults: {}
+  other:
+    label: {ru: "Другая", en: "Other", es: "Otro"}
+    work: [scaling, survey]
+    params: [width_m, height_m]
+    defaults: {}
+
+# Описание параметров: единица (ключ units.*), тип поля, варианты для списка.
+params:
+  booms: {unit: pcs, type: int}
+  dia_min: {unit: mm, type: num}
+  dia_max: {unit: mm, type: num}
+  max_length: {unit: m, type: num}
+  setup_h: {unit: h, type: num}
+  drill_rate_mph: {unit: m_h, type: num}
+  reposition_min: {unit: min, type: num}
+  width_m: {unit: m, type: num}
+  height_m: {unit: m, type: num}
+  cover_w_min: {unit: m, type: num}
+  cover_h_min: {unit: m, type: num}
+  cover_w_max: {unit: m, type: num}
+  cover_h_max: {unit: m, type: num}
+  rock_drill: {type: text}
+  impact_kw: {unit: kw, type: num}
+  bucket_m3: {unit: m3, type: num}
+  payload_t: {unit: t, type: num}
+  mucking_tph: {unit: t_h, type: num}
+  explosive_type: {type: select, options: [emulsion, anfo, both]}
+  charge_kg_min: {unit: kg_min, type: num}
+  hose_m: {unit: m, type: num}
+  bolts_per_h: {unit: pcs_h, type: num}
+
+# Ключи параметров прежних версий → новые (перенос данных при обновлении)
+renamed:
+  bucket_t: payload_t
+  charge_kg_per_h: {to: charge_kg_min, factor: 0.016667}

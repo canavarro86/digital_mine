@@ -1,0 +1,6 @@
+image:
+  registry: {{ env "IMAGE_REGISTRY" | default "" | quote }}
+  tag: {{ env "IMAGE_TAG" | default "dev" | quote }}
+telegram:
+  botToken: {{ env "TELEGRAM_BOT_TOKEN" | default "" | quote }}
+  chatId: {{ env "TELEGRAM_CHAT_ID" | default "" | quote }}

@@ -1,0 +1,55 @@
+# Проверки на каждый Pull Request и пуш: ruff, pytest, eslint, tsc, Vitest, helm lint, kubeconform
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - name: Образ для тестов (кэш GitHub Actions)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/Dockerfile
+          target: test
+          tags: digital-mine-test:ci
+          load: true
+          cache-from: type=gha,scope=py
+          cache-to: type=gha,mode=max,scope=py
+      - name: ruff
+        run: docker run --rm -e RUFF_CACHE_DIR=/tmp/rc -v $PWD/services:/s -w /s digital-mine-test:ci ruff check .
+      - name: pytest
+        run: docker run --rm -e HOME=/tmp -v $PWD/tests:/app/tests:ro digital-mine-test:ci python -m pytest -q -p no:cacheprovider tests
+  web:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: services/web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.23.3
+          cache: npm
+          cache-dependency-path: services/web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npx eslint src
+      - run: npx tsc -b
+      - run: npx vitest run
+  chart:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: helm и kubeconform
+        run: |
+          curl -fsSL https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz | tar xz -C /tmp && sudo install /tmp/linux-amd64/helm /usr/local/bin/
+          curl -fsSL https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz | tar xz -C /tmp && sudo install /tmp/kubeconform /usr/local/bin/
+      - run: helm lint charts/digital-mine
+      - run: helm template digital-mine charts/digital-mine | kubeconform -strict -summary -ignore-missing-schemas
+      - run: helm template ch deploy/charts/clickhouse -f deploy/values/clickhouse.yaml | kubeconform -strict -summary

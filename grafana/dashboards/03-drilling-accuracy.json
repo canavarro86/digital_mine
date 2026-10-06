@@ -1,0 +1,189 @@
+{
+ "uid": "dm-drill",
+ "title": "3. Точность бурения",
+ "tags": [
+  "digital-mine"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "refresh": "30s",
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "type": "barchart",
+   "title": "Среднее отклонение по машинам, %",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT machine AS машина, round(avg(deviation_pct),2) AS отклонение FROM drilling WHERE $__timeFilter(ts) AND machine!='' GROUP BY machine ORDER BY machine",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "xTickLabelRotation": -30,
+    "showValue": "auto",
+    "legend": {
+     "showLegend": true
+    }
+   }
+  },
+  {
+   "type": "barchart",
+   "title": "Среднее отклонение по людям, %",
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT operator AS бурильщик, round(avg(deviation_pct),2) AS отклонение FROM drilling WHERE $__timeFilter(ts) AND operator!='' GROUP BY operator ORDER BY отклонение DESC",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "xTickLabelRotation": -30,
+    "showValue": "auto",
+    "legend": {
+     "showLegend": true
+    }
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Отклонение Boomer и Simba по часам, %",
+   "gridPos": {
+    "x": 0,
+    "y": 8,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT toStartOfHour(ts) AS t, avgIf(deviation_pct, machine_type='dev_drill') AS Boomer, avgIf(deviation_pct, machine_type='ring_drill') AS Simba FROM drilling WHERE $__timeFilter(ts) GROUP BY t ORDER BY t",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "stat",
+   "title": "Шпуры/скважины > 3 % отклонения",
+   "gridPos": {
+    "x": 12,
+    "y": 8,
+    "w": 6,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT countIf(deviation_pct>3) AS выше_3, count() AS всего FROM drilling WHERE $__timeFilter(ts)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "stat",
+   "title": "Недобур, % длины",
+   "gridPos": {
+    "x": 18,
+    "y": 8,
+    "w": 6,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT round(avg((design_length-length)/design_length*100),2) AS недобур FROM drilling WHERE $__timeFilter(ts) AND design_length>0",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  }
+ ],
+ "editable": true
+}

@@ -1,0 +1,32 @@
+alertmanager:
+  enabled: false          # алерты обрабатывает наш сервис alerts
+prometheus-pushgateway:
+  enabled: false
+kube-state-metrics:
+  enabled: true           # состояние подов и HPA
+  resources:
+    requests: {cpu: 10m, memory: 32Mi}
+    limits: {memory: 80Mi}
+prometheus-node-exporter:
+  enabled: true           # процессор, память, диск узла
+  resources:
+    requests: {cpu: 10m, memory: 16Mi}
+    limits: {memory: 40Mi}
+configmapReload:
+  prometheus:
+    resources:
+      requests: {cpu: 5m, memory: 8Mi}
+      limits: {memory: 24Mi}
+server:
+  retention: 3d
+  global:
+    scrape_interval: 30s
+    evaluation_interval: 30s
+    scrape_timeout: 10s
+  persistentVolume:
+    size: 2Gi
+  resources:
+    requests: {cpu: 100m, memory: 200Mi}
+    limits: {memory: 450Mi}
+  extraFlags:
+    - web.enable-lifecycle

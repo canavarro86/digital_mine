@@ -1,0 +1,9 @@
+config:
+  clients:
+    - url: http://loki.monitoring.svc:3100/loki/api/v1/push
+  snippets:
+    pipelineStages:
+      - cri: {}
+resources:
+  requests: {cpu: 20m, memory: 40Mi}
+  limits: {memory: 100Mi}

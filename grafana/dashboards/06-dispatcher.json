@@ -1,0 +1,193 @@
+{
+ "uid": "dm-dispatch",
+ "title": "6. Диспетчер",
+ "tags": [
+  "digital-mine"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "refresh": "30s",
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "type": "barchart",
+   "title": "Загрузка машин: доля времени в работе, %",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT machine AS машина, round(countIf(status='working')/count()*100,1) AS работа FROM telemetry WHERE $__timeFilter(ts) AND machine NOT LIKE 'LOAD-%' GROUP BY machine ORDER BY machine",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "xTickLabelRotation": -30,
+    "showValue": "auto",
+    "legend": {
+     "showLegend": true
+    }
+   }
+  },
+  {
+   "type": "barchart",
+   "title": "Простои: доля idle, %",
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT machine AS машина, round(countIf(status='idle')/count()*100,1) AS простой FROM telemetry WHERE $__timeFilter(ts) AND machine NOT LIKE 'LOAD-%' GROUP BY machine ORDER BY простой DESC",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "xTickLabelRotation": -30,
+    "showValue": "auto",
+    "legend": {
+     "showLegend": true
+    }
+   }
+  },
+  {
+   "type": "table",
+   "title": "Перестановки",
+   "gridPos": {
+    "x": 0,
+    "y": 8,
+    "w": 16,
+    "h": 10
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT ts AS время, kind AS вид, machine AS машина, person AS человек, face AS забой, detail AS изменение FROM dispatch WHERE $__timeFilter(ts) ORDER BY ts DESC LIMIT 100",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Готовые забои сейчас",
+   "gridPos": {
+    "x": 16,
+    "y": 8,
+    "w": 8,
+    "h": 5
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "editorMode": "code",
+     "format": "table",
+     "rawSql": "SELECT count(*) AS готовы FROM faces WHERE status='ready'",
+     "refId": "A",
+     "rawQuery": true
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "table",
+   "title": "Открытые алерты диспетчера",
+   "gridPos": {
+    "x": 16,
+    "y": 13,
+    "w": 8,
+    "h": 5
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "editorMode": "code",
+     "format": "table",
+     "rawSql": "SELECT to_char(ts,'DD.MM HH24:MI') AS время, rule AS правило, entity AS объект FROM alerts WHERE audience='dispatcher' AND status='open' ORDER BY ts DESC",
+     "refId": "A",
+     "rawQuery": true
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true
+   }
+  }
+ ],
+ "editable": true
+}

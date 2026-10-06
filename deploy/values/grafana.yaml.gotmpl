@@ -1,0 +1,116 @@
+# Grafana по адресу http://127.0.0.1:9999/grafana
+# Пароль admin и пароли баз берутся из Secret dm-secrets (envFromSecret), здесь их нет.
+admin:
+  existingSecret: dm-secrets
+  userKey: GRAFANA_ADMIN_USER
+  passwordKey: GRAFANA_ADMIN_PASSWORD
+envFromSecret: dm-secrets
+testFramework:
+  enabled: false
+persistence:
+  enabled: true
+  size: 512Mi
+initChownData:
+  enabled: false
+resources:
+  requests: {cpu: 50m, memory: 128Mi}
+  limits: {memory: 260Mi}
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "3000"
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  path: /grafana
+  pathType: Prefix
+  hosts: []
+plugins:
+  - grafana-clickhouse-datasource 4.22.1
+grafana.ini:
+  server:
+    root_url: "http://127.0.0.1:9999/grafana/"
+    serve_from_sub_path: true
+  users:
+    allow_sign_up: false
+    default_theme: dark
+  auth.anonymous:
+    enabled: false
+  analytics:
+    reporting_enabled: false
+    check_for_updates: false
+    check_for_plugin_updates: false
+    feedback_links_enabled: false
+  news:
+    news_feed_enabled: false
+  log:
+    mode: console
+    level: warn
+  security:
+    disable_gravatar: true
+  # База Grafana в нашем PostgreSQL: пароли пользователей синхронизирует api (политика Grafana не допускает пароли < 4 символов)
+  database:
+    type: postgres
+    host: postgres.digital-mine.svc:5432
+    name: grafana
+    user: $__env{PG_USER}
+    password: $__env{PG_PASSWORD}
+    ssl_mode: disable
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.monitoring.svc
+        isDefault: true
+      - name: Loki
+        uid: loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring.svc:3100
+      - name: ClickHouse
+        uid: clickhouse
+        type: grafana-clickhouse-datasource
+        jsonData:
+          host: clickhouse.digital-mine.svc
+          port: 9000
+          protocol: native
+          username: ${CH_USER}
+          defaultDatabase: mine
+        secureJsonData:
+          password: ${CH_PASSWORD}
+      - name: PostgreSQL
+        uid: postgres
+        type: grafana-postgresql-datasource
+        url: postgres.digital-mine.svc:5432
+        user: ${PG_USER}
+        jsonData:
+          database: ${PG_DATABASE}
+          sslmode: disable
+          postgresVersion: 1800
+          timescaledb: false
+        secureJsonData:
+          password: ${PG_PASSWORD}
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: digital-mine
+        orgId: 1
+        folder: "UG Blast Loop"
+        type: file
+        disableDeletion: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/digital-mine
+dashboards:
+  digital-mine:
+{{- range $path := readDir "../../grafana/dashboards" }}
+{{- if hasSuffix ".json" $path }}
+    {{ base $path | trimSuffix ".json" }}:
+      json: |
+{{ readFile $path | indent 8 }}
+{{- end }}
+{{- end }}

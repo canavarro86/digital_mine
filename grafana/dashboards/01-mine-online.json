@@ -1,0 +1,213 @@
+{
+ "uid": "dm-online",
+ "title": "1. Рудник онлайн",
+ "tags": [
+  "digital-mine"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "refresh": "30s",
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "type": "stat",
+   "title": "Машины работают",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 4
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "editorMode": "code",
+     "format": "table",
+     "rawSql": "SELECT count(*) FILTER (WHERE status='working') AS работают, count(*) FILTER (WHERE status IN ('repair','maintenance')) AS ремонт FROM fleet",
+     "refId": "A",
+     "rawQuery": true
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "stat",
+   "title": "Забои в работе",
+   "gridPos": {
+    "x": 8,
+    "y": 0,
+    "w": 8,
+    "h": 4
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "editorMode": "code",
+     "format": "table",
+     "rawSql": "SELECT count(*) FILTER (WHERE status NOT IN ('ready','done')) AS в_цикле, count(*) FILTER (WHERE status='ready') AS готовы FROM faces",
+     "refId": "A",
+     "rawQuery": true
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "stat",
+   "title": "Открытые алерты",
+   "gridPos": {
+    "x": 16,
+    "y": 0,
+    "w": 8,
+    "h": 4
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "editorMode": "code",
+     "format": "table",
+     "rawSql": "SELECT count(*) AS открыто FROM alerts WHERE status='open'",
+     "refId": "A",
+     "rawQuery": true
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  },
+  {
+   "type": "table",
+   "title": "Статусы забоев",
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 12,
+    "h": 12
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "postgres"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "postgres"
+     },
+     "editorMode": "code",
+     "format": "table",
+     "rawSql": "SELECT f.name AS забой, f.kind AS вид, f.status AS статус, f.cycle_no AS цикл, to_char(f.status_since,'DD.MM HH24:MI') AS с FROM faces f ORDER BY f.kind, f.name",
+     "refId": "A",
+     "rawQuery": true
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true
+   }
+  },
+  {
+   "type": "table",
+   "title": "Машины и люди сейчас",
+   "gridPos": {
+    "x": 12,
+    "y": 4,
+    "w": 12,
+    "h": 12
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT machine AS машина, argMax(status, ts) AS статус, argMax(operator, ts) AS оператор, argMax(face, ts) AS забой, max(ts) AS последнее_событие FROM telemetry WHERE ts > now() - INTERVAL 1 DAY AND machine NOT LIKE 'LOAD-%' GROUP BY machine ORDER BY machine",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Переходы статусов забоев в час",
+   "gridPos": {
+    "x": 0,
+    "y": 16,
+    "w": 24,
+    "h": 7
+   },
+   "datasource": {
+    "type": "grafana-clickhouse-datasource",
+    "uid": "clickhouse"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-clickhouse-datasource",
+      "uid": "clickhouse"
+     },
+     "editorType": "sql",
+     "queryType": "table",
+     "format": 1,
+     "rawSql": "SELECT toStartOfHour(ts) AS t, count() AS переходы FROM face_status WHERE $__timeFilter(ts) GROUP BY t ORDER BY t",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "options": {}
+  }
+ ],
+ "editable": true
+}

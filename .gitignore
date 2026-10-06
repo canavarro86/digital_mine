@@ -1,0 +1,20 @@
+# секреты и локальное
+.secrets/
+.env
+tz.md
+.cache/
+backups/
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+# node
+node_modules/
+dist/
+services/web/test-results/
+# кластер
+kubeconfig*
+# рудник генерируется при первом запуске
+mines/default_mine/

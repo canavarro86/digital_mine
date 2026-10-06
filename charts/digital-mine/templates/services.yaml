@@ -1,0 +1,107 @@
+{{- range $name, $svc := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "dm.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  {{- if not $svc.hpa }}
+  replicas: 1
+  {{- end }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: {app.kubernetes.io/component: {{ $name }}}
+  template:
+    metadata:
+      labels:
+        {{- include "dm.labels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+    spec:
+      serviceAccountName: digital-mine
+      {{- with $.Values.image.pullSecrets }}
+      imagePullSecrets: {{- range . }}
+        - name: {{ . }}{{ end }}
+      {{- end }}
+      securityContext: {runAsUser: 1000, runAsGroup: 1000, fsGroup: 1000, runAsNonRoot: true}
+      containers:
+        - name: {{ $name }}
+          image: {{ include "dm.image" (dict "root" $ "name" $.Values.image.py) }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          command: ["uvicorn", "{{ $svc.module }}", "--host", "0.0.0.0", "--port", "8000", "--no-access-log", "--proxy-headers", "--forwarded-allow-ips", "*"]
+          env:
+            - {name: DM_SERVICE, value: {{ $name | quote }}}
+            - {name: DM_VERSION, value: {{ $.Values.image.tag | quote }}}
+            {{- range $k, $v := $.Values.env }}
+            - {name: {{ $k }}, value: {{ $v | quote }}}
+            {{- end }}
+            {{- if $.Values.telegram.botToken }}
+            - {name: DM_TELEGRAM_BOT_TOKEN, valueFrom: {secretKeyRef: {name: digital-mine-telegram, key: botToken}}}
+            - {name: DM_TELEGRAM_CHAT_ID, valueFrom: {secretKeyRef: {name: digital-mine-telegram, key: chatId}}}
+            {{- end }}
+          envFrom:
+            - secretRef: {name: {{ $.Values.existingSecret }}}
+          ports:
+            - {name: http, containerPort: 8000}
+          startupProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources: {{- toYaml $svc.resources | nindent 12 }}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+            {{- if $svc.mines }}
+            - {name: mines, mountPath: /app/mines}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {sizeLimit: 512Mi}
+        {{- if $svc.mines }}
+        - name: mines
+          hostPath: {path: {{ $.Values.minesHostPath }}, type: DirectoryOrCreate}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels: {{- include "dm.labels" $ | nindent 4 }}
+spec:
+  selector: {app.kubernetes.io/component: {{ $name }}}
+  ports:
+    - {name: http, port: 8000, targetPort: http}
+{{- if $svc.hpa }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $name }}
+  labels: {{- include "dm.labels" $ | nindent 4 }}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: {{ $name }}}
+  minReplicas: {{ $svc.hpa.min }}
+  maxReplicas: {{ $svc.hpa.max }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: {{ $svc.hpa.cpu }}}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+{{- end }}
+{{- end }}

@@ -1,0 +1,88 @@
+# Пуш в main: сборка образов → GHCR → деплой на кластер через self-hosted runner → проверка → откат при ошибке
+name: Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Образ Python-сервисов
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/Dockerfile
+          target: runtime
+          push: true
+          provenance: false
+          tags: ${{ env.REGISTRY }}/digital-mine-py:${{ github.sha }},${{ env.REGISTRY }}/digital-mine-py:latest
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=py
+          cache-to: type=gha,mode=max,scope=py
+      - name: Образ интерфейса
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/web/Dockerfile
+          push: true
+          provenance: false
+          tags: ${{ env.REGISTRY }}/digital-mine-web:${{ github.sha }},${{ env.REGISTRY }}/digital-mine-web:latest
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+  deploy:
+    needs: build
+    runs-on: [self-hosted, digital-mine]
+    env:
+      NS: digital-mine
+      KUBECONFIG: /runner-secrets/kubeconfig
+    steps:
+      - uses: actions/checkout@v5
+      - name: Секрет для GHCR (если пакеты приватные)
+        env:
+          PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+        run: |
+          if [ -n "$PULL_TOKEN" ]; then
+            kubectl -n $NS create secret docker-registry ghcr-pull --docker-server=ghcr.io \
+              --docker-username=${{ github.repository_owner }} --docker-password="$PULL_TOKEN" \
+              --dry-run=client -o yaml | kubectl -n $NS apply -f -
+            echo "PULL_SECRET=--set image.pullSecrets[0]=ghcr-pull" >> $GITHUB_ENV
+          fi
+      - name: helm upgrade --install
+        id: deploy
+        run: |
+          helm upgrade --install digital-mine charts/digital-mine -n $NS \
+            --set image.registry=${{ env.REGISTRY }}/ --set image.tag=${{ github.sha }} --set image.pullPolicy=IfNotPresent \
+            $PULL_SECRET --wait --timeout 15m
+      - name: Проверка готовности
+        id: check
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9999/api/i18n/languages || true)
+            web=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9999/ || true)
+            if [ "$code" = 200 ] && [ "$web" = 200 ]; then echo "OK"; exit 0; fi
+            sleep 10
+          done
+          echo "Система не отвечает"; exit 1
+      - name: Откат при ошибке
+        if: failure() && (steps.deploy.outcome == 'failure' || steps.check.outcome == 'failure')
+        run: |
+          helm history digital-mine -n $NS --max 5
+          helm rollback digital-mine -n $NS --wait --timeout 10m
+          echo "::error::Деплой ${{ github.sha }} откатан на предыдущую ревизию"

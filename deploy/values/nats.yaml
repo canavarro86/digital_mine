@@ -1,0 +1,23 @@
+config:
+  jetstream:
+    enabled: true
+    fileStore:
+      pvc:
+        size: 1Gi
+      maxSize: 800Mi
+    memoryStore:
+      enabled: true
+      maxSize: 16Mi
+container:
+  env:
+    GOMEMLIMIT: 70MiB
+  merge:
+    resources:
+      requests: {cpu: 20m, memory: 48Mi}
+      limits: {memory: 100Mi}
+reloader:
+  enabled: false
+natsBox:
+  enabled: false
+promExporter:
+  enabled: false   # длину очереди отдаёт сервис ingest (метрика dm_queue_pending)

@@ -1,0 +1,65 @@
+# Стартовые справочники персонала (Персонал → Профессии, Виды допусков). Загружаются в базу при первом запуске;
+# при обновлении добавляются только новые записи — правки пользователя не затираются.
+
+# Виды работ = допуски «на вид работ». Код совпадает с видом работ в наряде.
+# requires_permit: false — для работы достаточно допуска на машину (вспомогательные работы).
+# assignable: false — работа не назначается в наряде отдельной строкой (взрыв выполняется в окне ВР).
+work_kinds:
+  - {code: drilling, title: {ru: "Бурение забоя (проходка)", en: "Face drilling (development)", es: "Perforación de frente (desarrollo)"}}
+  - {code: ring_drilling, title: {ru: "Бурение вееров", en: "Ring drilling", es: "Perforación de abanicos"}}
+  - {code: charging, title: {ru: "Заряжание", en: "Charging", es: "Carguío de explosivos"}}
+  - {code: blasting, assignable: false, title: {ru: "Взрывные работы", en: "Blasting", es: "Tronadura"}}
+  - {code: support, title: {ru: "Крепление", en: "Ground support", es: "Fortificación"}}
+  - {code: scaling, title: {ru: "Оборка", en: "Scaling", es: "Acuñadura"}}
+  - {code: mucking, title: {ru: "Уборка горной массы (ПДМ)", en: "Mucking (LHD)", es: "Limpieza de marina (LHD)"}}
+  - {code: survey, title: {ru: "Маркшейдерская съёмка", en: "Survey", es: "Topografía"}}
+  - {code: supervision, title: {ru: "Руководство сменой", en: "Shift supervision", es: "Supervisión de turno"}}
+  - {code: aux, requires_permit: false, title: {ru: "Вспомогательные работы (доставка, транспорт)", en: "Auxiliary work (haulage, delivery)", es: "Trabajos auxiliares (transporte)"}}
+
+# Профессии: название и допуски по умолчанию, которые подставляются новому человеку.
+# machine: тип машины (config/fleet_types.yaml) или model:<производитель>/<модель>; work: вид работ.
+professions:
+  - code: dev_driller
+    title: {ru: "Бурильщик проходческий", en: "Development driller", es: "Perforista de desarrollo"}
+    permits: [{kind: machine, target: dev_drill}, {kind: work, target: drilling}, {kind: work, target: scaling}]
+  - code: ring_driller
+    title: {ru: "Бурильщик глубокого бурения", en: "Longhole driller", es: "Perforista de producción"}
+    permits: [{kind: machine, target: ring_drill}, {kind: work, target: ring_drilling}]
+  - code: blaster
+    title: {ru: "Взрывник", en: "Blaster", es: "Cargador / tronador"}
+    permits: [{kind: machine, target: charger}, {kind: work, target: charging}, {kind: work, target: blasting}]
+  - code: lhd_operator
+    title: {ru: "Машинист ПДМ", en: "LHD operator", es: "Operador de LHD"}
+    permits: [{kind: machine, target: lhd}, {kind: work, target: mucking}]
+  - code: bolter
+    title: {ru: "Крепильщик", en: "Bolter operator", es: "Operador de empernador"}
+    permits: [{kind: machine, target: bolter}, {kind: work, target: support}, {kind: work, target: scaling}]
+  - code: miner
+    title: {ru: "Горнорабочий", en: "Miner", es: "Minero"}
+    permits: [{kind: work, target: scaling}]
+  - code: aux_operator
+    title: {ru: "Машинист вспомогательного оборудования", en: "Auxiliary equipment operator", es: "Operador de equipo auxiliar"}
+    permits: [{kind: machine, target: aux}, {kind: work, target: aux}]
+  - code: foreman
+    title: {ru: "Горный мастер", en: "Shift foreman", es: "Jefe de turno"}
+    permits: [{kind: work, target: supervision}]
+  - code: surveyor
+    title: {ru: "Маркшейдер", en: "Surveyor", es: "Topógrafo"}
+    permits: [{kind: work, target: survey}]
+  - code: engineer
+    title: {ru: "Инженер", en: "Engineer", es: "Ingeniero"}
+    permits: [{kind: work, target: supervision}]
+  - code: trainee
+    trainee: true
+    title: {ru: "Стажёр", en: "Trainee", es: "Aprendiz"}
+    permits: []
+
+# Профессии прежней версии (жёсткий список) → новые коды. driller уточняется по допускам человека.
+legacy:
+  driller: [dev_driller]
+  blaster: [blaster]
+  lhd_operator: [lhd_operator]
+  bolter: [bolter]
+  foreman: [foreman]
+  surveyor: [surveyor]
+  engineer: [engineer]

@@ -1,0 +1,11 @@
+image:
+  repository: clickhouse/clickhouse-server
+  tag: 26.3.42.3-alpine
+existingSecret: dm-secrets
+database: mine
+resources:
+  requests: {cpu: 100m, memory: 400Mi}
+  limits: {memory: 1000Mi}
+# 70% лимита контейнера
+maxServerMemoryUsage: 700000000
+storage: 3Gi

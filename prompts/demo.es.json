@@ -1,0 +1,130 @@
+{
+ "dev_passport": {
+  "problems": [
+   "El factor de carga del diagrama es 25–35 % menor que el estimado por Pokrovsky",
+   "El largo de tiros está cerca del límite de la rainura con 2 alivios Ø102"
+  ],
+  "causes": [
+   "La emulsión permite mayor burden, pero con fracturamiento III–IV crece el riesgo de sobreexcavación",
+   "Poco margen de profundidad de la rainura"
+  ],
+  "changes": [
+   {
+    "param": "cut.n_empty",
+    "was": 2,
+    "now": 3,
+    "why": "Margen de rainura y rendimiento ≥ 0,9"
+   },
+   {
+    "param": "lookout_deg",
+    "was": 3,
+    "now": 2,
+    "why": "Menos sobreexcavación del contorno"
+   },
+   {
+    "param": "contour_blasting",
+    "was": true,
+    "now": true,
+    "why": "Mantener tronadura de contorno"
+   }
+  ],
+  "effect": "Rendimiento +0,03…0,05, sobreexcavación −3…5 %, roca extra −1,5 t por disparo"
+ },
+ "dev_recalc": {
+  "problems": [
+   "Dos zonas subcargadas en la pared derecha",
+   "Un tiro de contorno sin perforar"
+  ],
+  "causes": [
+   "Desviación del fondo 3–4 % (brazo derecho)",
+   "Tiro de contorno omitido"
+  ],
+  "changes": [
+   {
+    "param": "hole_depth",
+    "was": 3.8,
+    "now": 3.6,
+    "why": "Menor desviación del fondo"
+   }
+  ],
+  "effect": "Fragmentación uniforme, rendimiento ≥ 0,88"
+ },
+ "dev_cycle": {
+  "problems": [
+   "Sobreexcavación sobre el límite",
+   "Pocas medias cañas en el contorno"
+  ],
+  "causes": [
+   "Desviación de tiros y tramo fracturado",
+   "Carga de contorno excesiva"
+  ],
+  "changes": [
+   {
+    "param": "lookout_deg",
+    "was": 3,
+    "now": 2,
+    "why": "Reducir sobreexcavación"
+   },
+   {
+    "param": "hole_diameter",
+    "was": 45,
+    "now": 43,
+    "why": "Menos energía en el contorno"
+   }
+  ],
+  "effect": "Sobreexcavación −4…6 %, ahorro 300–500 USD por disparo"
+ },
+ "rings": {
+  "problems": [
+   "Concentración de energía en los collares"
+  ],
+  "causes": [
+   "Collares sin carga más cortos de lo recomendado"
+  ],
+  "changes": [
+   {
+    "param": "uncharged",
+    "was": "1,5 m",
+    "now": "2,5 m",
+    "why": "Menos daño a la visera"
+   }
+  ],
+  "effect": "Menos daño a la visera, −5 % de explosivo"
+ },
+ "stope_result": {
+  "problems": [
+   "ELOS de caja techo > 1 m"
+  ],
+  "causes": [
+   "Caja techo débil y carga excesiva en tiros extremos"
+  ],
+  "changes": [
+   {
+    "param": "standoff",
+    "was": 0.7,
+    "now": 1.2,
+    "why": "Mayor distancia a la caja techo"
+   }
+  ],
+  "effect": "Dilución −3…5 %"
+ },
+ "mine_summary": {
+  "problems": [
+   "Crece la roca extra en desarrollo",
+   "Jumbos detenidos al final del turno"
+  ],
+  "causes": [
+   "Desviación de perforación en dos equipos",
+   "Pocos frentes listos por demoras de fortificación"
+  ],
+  "changes": [
+   {
+    "param": "dispatch",
+    "was": "manual",
+    "now": "reasignación por alertas",
+    "why": "Reducir detenciones"
+   }
+  ],
+  "effect": "+6–8 % de avance mensual"
+ }
+}

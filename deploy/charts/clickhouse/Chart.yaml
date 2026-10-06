@@ -1,0 +1,6 @@
+apiVersion: v2
+name: clickhouse
+description: Минимальный ClickHouse (один узел) на официальном образе с настройками для 8 ГБ ОЗУ
+type: application
+version: 0.1.0
+appVersion: "26.3.42.3"

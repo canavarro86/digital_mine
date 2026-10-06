@@ -1,0 +1,24 @@
+mode: standalone
+replicas: 1
+existingSecret: dm-secrets   # ключи rootUser / rootPassword
+persistence:
+  enabled: true
+  size: 5Gi
+resources:
+  requests: {cpu: 50m, memory: 128Mi}
+  limits: {memory: 300Mi}
+users: []
+buckets: []
+policies: []
+svcaccts: []
+environment:
+  MINIO_BROWSER: "off"
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9000"
+  prometheus.io/path: /minio/v2/metrics/cluster
+# Официальные образы MinIO сняты с quay.io и Docker Hub (2025). Используется сборка сообщества Pigsty
+# из исходников MinIO (AGPL) — см. README, раздел «Решения».
+image:
+  repository: pgsty/minio
+  tag: RELEASE.2026-08-04T00-00-00Z

@@ -1,0 +1,130 @@
+{
+ "dev_passport": {
+  "problems": [
+   "Powder factor from the layout is 25–35 % below the Pokrovsky estimate",
+   "Hole depth is close to the cut limit with 2 × Ø102 relief holes"
+  ],
+  "causes": [
+   "High-strength bulk emulsion allows larger burdens, but in category III–IV jointing overbreak risk grows",
+   "Small cut depth margin — pull factor drops with drilling deviation"
+  ],
+  "changes": [
+   {
+    "param": "cut.n_empty",
+    "was": 2,
+    "now": 3,
+    "why": "Cut depth margin and stable pull ≥ 0.9"
+   },
+   {
+    "param": "lookout_deg",
+    "was": 3,
+    "now": 2,
+    "why": "Less perimeter overbreak"
+   },
+   {
+    "param": "contour_blasting",
+    "was": true,
+    "now": true,
+    "why": "Keep smooth blasting"
+   }
+  ],
+  "effect": "Pull factor +0.03…0.05, overbreak −3…5 %, extra rock −1.5 t per round"
+ },
+ "dev_recalc": {
+  "problems": [
+   "Two underloaded zones at the right wall",
+   "One perimeter hole not drilled"
+  ],
+  "causes": [
+   "Toe deviation 3–4 % of length (right boom)",
+   "Missed perimeter hole"
+  ],
+  "changes": [
+   {
+    "param": "hole_depth",
+    "was": 3.8,
+    "now": 3.6,
+    "why": "Smaller toe deviation with the same boom"
+   }
+  ],
+  "effect": "Uniform fragmentation, pull ≥ 0.88"
+ },
+ "dev_cycle": {
+  "problems": [
+   "Overbreak above limit",
+   "Few half casts on the perimeter"
+  ],
+  "causes": [
+   "Hole deviation and jointed interval",
+   "Perimeter charge too high for jointed rock"
+  ],
+  "changes": [
+   {
+    "param": "lookout_deg",
+    "was": 3,
+    "now": 2,
+    "why": "Reduce overbreak"
+   },
+   {
+    "param": "hole_diameter",
+    "was": 45,
+    "now": 43,
+    "why": "Less energy at perimeter"
+   }
+  ],
+  "effect": "Overbreak −4…6 %, saving 300–500 USD per round"
+ },
+ "rings": {
+  "problems": [
+   "Energy concentration near ring collars"
+  ],
+  "causes": [
+   "Uncharged collars of central holes shorter than recommended"
+  ],
+  "changes": [
+   {
+    "param": "uncharged",
+    "was": "1.5 m",
+    "now": "2.5 m",
+    "why": "Less brow damage at the drive"
+   }
+  ],
+  "effect": "Less brow damage, −5 % explosive"
+ },
+ "stope_result": {
+  "problems": [
+   "Hanging wall ELOS > 1 m"
+  ],
+  "causes": [
+   "Weak hanging wall and excess charge in outer holes"
+  ],
+  "changes": [
+   {
+    "param": "standoff",
+    "was": 0.7,
+    "now": 1.2,
+    "why": "Larger stand-off to the hanging wall"
+   }
+  ],
+  "effect": "Dilution −3…5 %"
+ },
+ "mine_summary": {
+  "problems": [
+   "Extra rock in development is growing",
+   "Rig idle time at end of shift"
+  ],
+  "causes": [
+   "Drilling deviation on two rigs",
+   "Few ready faces due to support delays"
+  ],
+  "changes": [
+   {
+    "param": "dispatch",
+    "was": "manual",
+    "now": "reassign from alerts",
+    "why": "Reduce idle time"
+   }
+  ],
+  "effect": "+6–8 % development per month"
+ }
+}

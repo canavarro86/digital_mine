@@ -1,0 +1,68 @@
+# Стартовый справочник моделей машин (Флот → Модели). Загружается в базу при первом запуске и при обновлении
+# добавляются только новые модели — правки пользователя не затираются.
+# ВНИМАНИЕ: значения взяты из открытых данных производителей и типовых значений (источники — README, раздел «Решения»).
+# Все модели помечены verify: true — «проверить по паспорту машины». Скорость бурения, время установки
+# и перестановки в спецификациях не публикуются — это типовые оценки для расчёта времени.
+# short_name — короткое имя для автоназвания машины («Axera №48»).
+models:
+  # ---------- проходческие буровые ----------
+  - {manufacturer: Epiroc, model: Boomer M2 C, short_name: Boomer, type: dev_drill, source: epiroc_boomer_m2c,
+     params: {booms: 2, dia_min: 38, dia_max: 64, max_length: 5.3, setup_h: 0.5, drill_rate_mph: 90, reposition_min: 0.5,
+              width_m: 2.25, height_m: 3.18, cover_w_min: 3.0, cover_h_min: 3.0, cover_w_max: 9.0, cover_h_max: 7.3,
+              rock_drill: COP MD20, impact_kw: 20}}
+  - {manufacturer: Epiroc, model: Boomer M2D, short_name: Boomer, type: dev_drill, source: epiroc_boomer_m2c,
+     params: {booms: 2, dia_min: 43, dia_max: 64, max_length: 5.2, setup_h: 0.5, drill_rate_mph: 85, reposition_min: 0.5,
+              width_m: 2.24, height_m: 3.0, cover_w_min: 3.0, cover_h_min: 3.0, cover_w_max: 8.8, cover_h_max: 7.0,
+              rock_drill: COP 1838, impact_kw: 18}}
+  - {manufacturer: Epiroc, model: Boomer S2, short_name: Boomer, type: dev_drill, source: epiroc_boomer_family,
+     params: {booms: 2, dia_min: 38, dia_max: 64, max_length: 4.3, setup_h: 0.4, drill_rate_mph: 80, reposition_min: 0.5,
+              width_m: 1.96, height_m: 2.8, cover_w_min: 2.5, cover_h_min: 2.5, cover_w_max: 7.0, cover_h_max: 5.5,
+              rock_drill: COP 1838, impact_kw: 18}}
+  - {manufacturer: Epiroc, model: Boomer E2 C, short_name: Boomer, type: dev_drill, source: epiroc_boomer_family,
+     params: {booms: 2, dia_min: 43, dia_max: 64, max_length: 6.2, setup_h: 0.6, drill_rate_mph: 100, reposition_min: 0.5,
+              width_m: 2.5, height_m: 3.3, cover_w_min: 4.0, cover_h_min: 4.0, cover_w_max: 12.6, cover_h_max: 9.0,
+              rock_drill: COP 2238, impact_kw: 22}}
+  - {manufacturer: Sandvik, model: DD421, short_name: Axera, type: dev_drill, source: sandvik_dd421,
+     params: {booms: 2, dia_min: 43, dia_max: 64, max_length: 4.66, setup_h: 0.5, drill_rate_mph: 90, reposition_min: 0.5,
+              width_m: 2.31, height_m: 2.68, cover_w_min: 3.0, cover_h_min: 3.0, cover_w_max: 9.97, cover_h_max: 6.69,
+              rock_drill: RD525, impact_kw: 25}}
+  - {manufacturer: Sandvik, model: DD321, short_name: Axera, type: dev_drill, source: sandvik_dd_family,
+     params: {booms: 2, dia_min: 43, dia_max: 64, max_length: 4.3, setup_h: 0.5, drill_rate_mph: 85, reposition_min: 0.5,
+              width_m: 1.95, height_m: 2.4, cover_w_min: 2.6, cover_h_min: 2.6, cover_w_max: 7.0, cover_h_max: 5.6,
+              rock_drill: RD520, impact_kw: 20}}
+  # ---------- станки глубокого бурения ----------
+  # adopt: true — при переносе машины этой модели принимают параметры модели целиком (параметры машин прежней версии были значениями типа по умолчанию)
+  - {manufacturer: Epiroc, model: Simba E7 C, short_name: Simba, type: ring_drill, source: epiroc_simba_e7, adopt: true,
+     params: {booms: 1, dia_min: 89, dia_max: 127, max_length: 51, setup_h: 0.7, drill_rate_mph: 35, reposition_min: 3,
+              width_m: 2.55, height_m: 3.15, cover_w_min: 3.5, cover_h_min: 3.5, cover_w_max: 8.0, cover_h_max: 8.7,
+              rock_drill: COP 1838+, impact_kw: 18}}
+  - {manufacturer: Epiroc, model: Simba M4 C, short_name: Simba, type: ring_drill, source: epiroc_simba_m4,
+     params: {booms: 1, dia_min: 51, dia_max: 89, max_length: 32, setup_h: 0.6, drill_rate_mph: 40, reposition_min: 3,
+              width_m: 2.2, height_m: 2.9, cover_w_min: 3.0, cover_h_min: 3.0, cover_w_max: 6.5, cover_h_max: 6.5,
+              rock_drill: COP 1838, impact_kw: 18}}
+  - {manufacturer: Sandvik, model: DL431, short_name: DL, type: ring_drill, source: sandvik_dl431,
+     params: {booms: 1, dia_min: 54, dia_max: 89, max_length: 38, setup_h: 0.6, drill_rate_mph: 38, reposition_min: 3,
+              width_m: 2.0, height_m: 2.9, cover_w_min: 3.2, cover_h_min: 3.2, cover_w_max: 5.0, cover_h_max: 5.0,
+              rock_drill: RD314, impact_kw: 14}}
+  # ---------- ПДМ ----------
+  - {manufacturer: Epiroc, model: Scooptram ST14, short_name: ST14, type: lhd, source: epiroc_st14,
+     params: {bucket_m3: 6.4, payload_t: 14, mucking_tph: 120, width_m: 2.8, height_m: 2.56}}
+  - {manufacturer: Epiroc, model: Scooptram ST7, short_name: ST7, type: lhd, source: epiroc_scooptram_family,
+     params: {bucket_m3: 3.1, payload_t: 6.8, mucking_tph: 70, width_m: 2.24, height_m: 2.15}}
+  - {manufacturer: Sandvik, model: LH517i, short_name: LH517, type: lhd, source: sandvik_lh517i,
+     params: {bucket_m3: 7.0, payload_t: 17, mucking_tph: 150, width_m: 3.1, height_m: 2.8}}
+  - {manufacturer: Sandvik, model: LH514, short_name: LH514, type: lhd, source: sandvik_lh_family,
+     params: {bucket_m3: 6.0, payload_t: 14, mucking_tph: 120, width_m: 2.8, height_m: 2.6}}
+  # ---------- зарядные ----------
+  - {manufacturer: Normet, model: Charmec MC 605 VE, short_name: Charmec, type: charger, source: normet_charmec,
+     params: {explosive_type: emulsion, charge_kg_min: 7, hose_m: 40, width_m: 2.4, height_m: 2.8}}
+  # ---------- крепление ----------
+  - {manufacturer: Epiroc, model: Boltec M, short_name: Boltec, type: bolter, source: epiroc_boltec,
+     params: {bolts_per_h: 12, width_m: 2.3, height_m: 2.9}}
+  - {manufacturer: Sandvik, model: DS311, short_name: DS, type: bolter, source: sandvik_ds_family,
+     params: {bolts_per_h: 10, width_m: 2.0, height_m: 2.6}}
+  # ---------- вспомогательное оборудование ----------
+  - {manufacturer: Epiroc, model: Minetruck MT42, short_name: MT42, type: aux, source: epiroc_minetruck,
+     params: {payload_t: 42, width_m: 3.2, height_m: 2.9}}
+  - {manufacturer: Normet, model: Utilift MF 540, short_name: Utilift, type: aux, source: normet_utilift,
+     params: {payload_t: 4, width_m: 2.4, height_m: 2.8}}
