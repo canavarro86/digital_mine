@@ -732,9 +732,13 @@ def ready_faces(machine_id: int | None = None, face_id: int | None = None, db: S
         pos = face_position(db, f)
         dist = math.dist(origin, pos) if origin and pos else None
         hours = face_drill_hours(db, f, mc)
+        # машина и забой несовместимы (диаметр, длина, габариты, буровая выработка камеры) — в конец списка с причиной
+        issues = [i for i in check_assignment(db, None, mc, f, "drilling" if f.kind == "dev" else "ring_drilling",
+                                              utcnow()) if i["level"] == "error"] if mc else []
         out.append({"face_id": f.id, "name": f.name, "priority": f.priority, "distance_m": round(dist, 0) if dist else None,
-                    "drill_hours": hours, "fits_shift": hours <= left_h, **blast_fit(db, f, mc)})
-    out.sort(key=lambda r: (r["priority"], r["distance_m"] or 0))
+                    "drill_hours": hours, "fits_shift": hours <= left_h, "ok": not issues,
+                    "issues": [i["code"] for i in issues], **blast_fit(db, f, mc)})
+    out.sort(key=lambda r: (not r["ok"], r["priority"], r["distance_m"] or 0))
     return {"left_hours": round(left_h, 2), "faces": out}
 
 

@@ -39,7 +39,7 @@ from core import geometry as g
 from core import importers, passport, rings, scans
 
 from ..deps import CurrentUser, audit, get_current_user, require
-from ..svc import active_mine, analyzer, calc, economics, geology_at
+from ..svc import active_mine, analyzer, calc, economics, geology_at, get_setting
 
 router = APIRouter(prefix="/api/workflow", tags=["workflow"])
 VIEW = require("dispatch.view", "workings.view")
@@ -61,6 +61,16 @@ def next_statuses(face: Face) -> list[str]:
     return [fl[i + 1]]
 
 
+def emulated_blast_window(db: Session, body: dict, user: CurrentUser) -> bool:
+    """Эмулятор на скорости > ×1 сжимает время работ, а окна ВР идут по реальным часам рудника: ждать их —
+    это часы реального времени на каждый цикл. Взрыв эмулятора по его сжатому окну (emulated_window)
+    принимается только от служебного пользователя эмулятора и только пока эмулятор запущен с ускорением."""
+    if not (body.get("emulated_window") and user.service and user.username.startswith("emulator")):
+        return False
+    emu = get_setting(db, "emulator") or {}
+    return bool(emu.get("running")) and float(emu.get("speed", 1)) > 1
+
+
 def blast_window_check(db: Session, f: Face, body: dict, user: CurrentUser) -> str:
     """«Взорван» ставится только внутри окна ВР. Вне окна — только администратор с обязательной причиной
     (пишется в журнал забоя и аудит). Возвращает комментарий к событию."""
@@ -71,6 +81,8 @@ def blast_window_check(db: Session, f: Face, body: dict, user: CurrentUser) -> s
     sc = shift_config(cfg)
     now = utcnow()
     if sh.window_at(sc, now, tz):
+        return body.get("comment", "")
+    if emulated_blast_window(db, body, user):
         return body.get("comment", "")
     reason = (body.get("override_reason") or "").strip()
     if user.can("users.manage") and not user.service and reason:

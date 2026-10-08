@@ -88,6 +88,8 @@ class Emulator:
         self.log: list[dict] = []
         self.stats = {"cycles": 0, "drill_reports": 0, "scans": 0, "events": 0, "errors": 0, "load_sent": 0}
         self.order_key = None
+        self.assign_retry_at: datetime | None = None
+        self.blast_now = False
         self.task: asyncio.Task | None = None
         self.load_task: asyncio.Task | None = None
         self.js = None
@@ -122,26 +124,29 @@ class Emulator:
                 log.warning("NATS: %s", e)
         await self.refresh_positions()
         await self.save_runtime()
-        last_tele = 0.0
+        last = asyncio.get_event_loop().time() - 2.0
         while self.running:
             t0 = asyncio.get_event_loop().time()
-            dt_h = 2.0 * self.speed / 3600
+            # часы работ — по фактически прошедшему времени шага: медленный ответ API не замедляет рудник
+            dt_h, last = min(t0 - last, 10.0) * self.speed / 3600, t0
             try:
-                await self.ensure_order()
-                faces = await self.api.get("/api/workflow/faces")
-                board = await self.api.get("/api/dispatch/board")
-                # взрыв — только в окне ВР по графику смен рудника
-                self.blast_now = bool((await self.api.get("/api/mine/shifts")).get("blast_now"))
-                await self.step_faces(faces, board, dt_h)
-                await self.dispatch(faces, board)
-                if t0 - last_tele >= 2:
-                    await self.telemetry(faces, board)
-                    last_tele = t0
+                await self.tick(dt_h)
             except Exception as e:
                 self.stats["errors"] += 1
                 log.exception("tick")
                 self.note(f"error: {e}")
             await asyncio.sleep(max(0.2, 2.0 - (asyncio.get_event_loop().time() - t0)))
+
+    async def tick(self, dt_h: float, telemetry: bool = True) -> None:
+        """Один шаг эмулятора: dt_h — сколько часов работ рудника прошло (реальные 2 с × скорость)."""
+        board = await self.ensure_order()
+        faces = await self.api.get("/api/workflow/faces")
+        # взрыв — в окне ВР по графику смен рудника; при ускорении окно сжимается вместе с работами
+        self.blast_now = bool((await self.api.get("/api/mine/shifts")).get("blast_now"))
+        await self.step_faces(faces, board, dt_h)
+        await self.dispatch(faces, board)
+        if telemetry:
+            await self.telemetry(faces, board)
 
     async def save_runtime(self) -> None:
         try:
@@ -156,45 +161,60 @@ class Emulator:
         self.positions = {f["id"]: f["pos"] for f in sc["faces"]}
 
     # ---------- наряд ----------
-    async def ensure_order(self) -> None:
-        o = await self.api.get("/api/dispatch/order")
-        key = (o["date"], o["shift_no"])
-        if o["order"] is None:
+    async def ensure_order(self) -> dict:
+        """Наряд текущей смены (по табло — без проверок всех строк наряда) и расстановка свободных буровых.
+        Возвращает табло «Смена сейчас»."""
+        board = await self.api.get("/api/dispatch/board")
+        key = (board["shift"]["date"], board["shift"]["shift_no"])
+        if board["order_id"] is None:
             await self.api.post("/api/dispatch/order", {"copy": "previous"}, as_user="emulator-dispatcher")
-            o = await self.api.get("/api/dispatch/order")
+            board = await self.api.get("/api/dispatch/board")
             self.note(f"наряд {key[0]} смена {key[1]} создан (копия предыдущей)")
         if self.order_key != key:
-            self.order_key = key
-            await self.auto_assign(o["order"])
+            self.order_key, self.assign_retry_at = key, None
+        # свободные буровые расставляются на каждом шаге, а не один раз за смену: при копировании наряда строки
+        # с необуриваемыми забоями отбрасываются, во время ВР людей не назначают, забои готовятся позже
+        if board["order_id"] and (self.assign_retry_at is None or now() >= self.assign_retry_at):
+            if await self.auto_assign(board["order_id"], board["rows"]):
+                board = await self.api.get("/api/dispatch/board")
+        return board
 
-    async def auto_assign(self, order: dict) -> None:
-        """Буровые — на готовые забои; люди — только с действующими допусками на машину и вид работ
-        (список кандидатов API, допущенные первыми), своей смены в приоритете."""
-        if not order:
-            return
-        active = [a for a in order["assignments"] if a["active"]]
-        fleet = await self.api.get("/api/fleet")
+    async def auto_assign(self, order_id: int, rows: list[dict]) -> bool:
+        """Буровые без назначения — на готовые забои; люди — только с действующими допусками на машину и вид работ
+        (список кандидатов API, допущенные первыми), своей смены в приоритете. Забои — совместимые с машиной."""
+        used_m = {a["machine_id"] for a in rows}
+        used_f = {a["face_id"] for a in rows if a["work_type"] in ("drilling", "ring_drilling")}
+        assigned = False
+        fleet = [m for m in await self.api.get("/api/fleet") if m["id"] not in used_m and m["status"] in ("working", "idle")
+                 and m["type"] in ("dev_drill", "ring_drill")]
+        if not fleet:
+            return False
         faces = await self.api.get("/api/workflow/faces")
-        used_m = {a["machine_id"] for a in active}
-        used_f = {a["face_id"] for a in active if a["work_type"] in ("drilling", "ring_drilling")}
         for m in fleet:
-            if m["id"] in used_m or m["status"] not in ("working", "idle") or m["type"] not in ("dev_drill", "ring_drill"):
-                continue
             kind = "dev" if m["type"] == "dev_drill" else "stope"
             work = "drilling" if kind == "dev" else "ring_drilling"
             cand = sorted([f for f in faces if f["kind"] == kind and f["status"] in ("ready", "drilling") and f["id"] not in used_f],
                           key=lambda f: (f["status"] != "drilling", f["priority"]))
             if not cand:
                 continue
-            people = await self.api.get("/api/dispatch/candidates", work_type=work, order_id=order["id"], machine_id=m["id"])
-            for p in [x for x in people.get("persons", []) if x["ok"]]:
-                r = await self.api.post(f"/api/dispatch/order/{order['id']}/assign",
-                                        {"person_id": p["id"], "machine_id": m["id"], "face_id": cand[0]["id"],
+            people = [x for x in (await self.api.get("/api/dispatch/candidates", work_type=work, order_id=order_id,
+                                                     machine_id=m["id"])).get("persons", []) if x["ok"]]
+            if not people:
+                continue
+            for f in cand:
+                r = await self.api.post(f"/api/dispatch/order/{order_id}/assign",
+                                        {"person_id": people[0]["id"], "machine_id": m["id"], "face_id": f["id"],
                                          "work_type": work}, as_user="emulator-dispatcher")
                 if "_error" not in r:
-                    used_f.add(cand[0]["id"])
-                    self.note(f"наряд: {p['full_name']} — {m['label']} — {cand[0]['name']}")
+                    used_f.add(f["id"])
+                    assigned = True
+                    self.note(f"наряд: {people[0]['full_name']} — {m['label']} — {f['name']}")
                     break
+                code = str(r.get("detail", {}).get("code", "")) if isinstance(r.get("detail"), dict) else str(r.get("detail"))
+                if code.endswith("blast_in_progress"):  # идут ВР — людей не назначают, повтор через минуту
+                    self.assign_retry_at = now() + timedelta(seconds=60)
+                    return assigned
+        return assigned
 
     # ---------- забои ----------
     async def step_faces(self, faces: list[dict], board: dict, dt_h: float) -> None:
@@ -220,8 +240,8 @@ class Emulator:
             nxt = (NEXT if f["kind"] == "dev" else NEXT_STOPE).get(st)
             if not nxt:
                 continue
-            if nxt == "blasted" and not getattr(self, "blast_now", False):
-                continue  # заряжен — ждёт окна ВР (вне окна сервер переводит забой в «Ждёт ВР»)
+            if nxt == "blasted" and not self.blast_now and self.speed <= 1:
+                continue  # ×1: заряжен — ждёт окна ВР (вне окна сервер переводит забой в «Ждёт ВР»)
             need = STEP_H.get(st, 0.5)
             if st == "handed" and "blasters_late" in self.scenarios:
                 need = 2.5 + 2 * K[self.scenarios["blasters_late"]]
@@ -239,7 +259,12 @@ class Emulator:
                 await self.api.post(f"/api/workflow/faces/{fid}/recalc", as_user="emulator-engineer")
             else:
                 user = {"accepted": "emulator-blaster", "blasted": "emulator-blaster"}.get(nxt, "emulator-foreman")
-                await self.api.post(f"/api/workflow/faces/{fid}/transition", {"to": nxt}, as_user=user)
+                body = {"to": nxt}
+                if nxt == "blasted" and not self.blast_now:
+                    # окна ВР идут по реальным часам, работы — ×скорость: ждать окна — часы на каждый цикл.
+                    # Взрыв по сжатому окну эмулятора; сервер принимает его, только пока эмулятор ускорен
+                    body["emulated_window"] = True
+                await self.api.post(f"/api/workflow/faces/{fid}/transition", body, as_user=user)
 
     async def drill(self, f: dict, row: dict, fs: dict, dt_h: float) -> None:
         fid = f["id"]
@@ -391,15 +416,15 @@ class Emulator:
             fleet = {m["label"]: m for m in await self.api.get("/api/fleet")}
             m = fleet.get(r["machine"])
             rf = await self.api.get("/api/dispatch/ready-faces", machine_id=m["id"], face_id=f["id"])
-            if not rf["faces"]:
-                continue
-            tgt = rf["faces"][0]
-            res = await self.api.post("/api/dispatch/reassign", {"assignment_id": r["assignment_id"],
-                                                                 "face_id": tgt["face_id"], "reason": "auto"},
-                                      as_user="emulator-dispatcher")
-            if "_error" not in res:
-                self.note(f"перестановка: {r['machine']} → {tgt['name']}")
-                self.free_since.pop(r["assignment_id"], None)
+            # первый совместимый с машиной забой, который удалось назначить (несовместимые API ставит в конец)
+            for tgt in [x for x in rf["faces"] if x.get("ok", True)]:
+                res = await self.api.post("/api/dispatch/reassign", {"assignment_id": r["assignment_id"],
+                                                                     "face_id": tgt["face_id"], "reason": "auto"},
+                                          as_user="emulator-dispatcher")
+                if "_error" not in res:
+                    self.note(f"перестановка: {r['machine']} → {tgt['name']}")
+                    self.free_since.pop(r["assignment_id"], None)
+                    break
 
     # ---------- телеметрия ----------
     async def telemetry(self, faces: list[dict], board: dict) -> None:
