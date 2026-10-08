@@ -221,11 +221,15 @@ class Emulator:
         drill_rows = {r["face_id"]: r for r in board["rows"] if r["work_type"] in ("drilling", "ring_drilling")}
         for f in faces:
             fid, st = f["id"], f["status"]
+            prev = self.faces.get(fid, {}).get("status")
             fs = self.faces.setdefault(fid, {"cycle": f["cycle_no"], "wait_h": 0.0})
             if fs.get("cycle") != f["cycle_no"]:
                 self.faces[fid] = fs = {"cycle": f["cycle_no"], "wait_h": 0.0}
+            fs["status"] = st
             if st == "done":
-                await self.replace_done(f)
+                # замена — один раз, когда забой закончился на глазах эмулятора (не на каждом шаге и не после рестарта)
+                if prev is not None and prev != "done":
+                    await self.replace_done(f)
                 continue
             if st in ("ready", "drilling"):
                 row = drill_rows.get(fid)
@@ -373,9 +377,6 @@ class Emulator:
 
     async def replace_done(self, f: dict) -> None:
         """Забой закончен: ввести в работу следующую выработку / камеру."""
-        if f.get("_replaced"):
-            return
-        self.faces[f["id"]]["_replaced"] = True
         if f["kind"] == "stope":
             stopes = await self.api.get("/api/rings/stopes")
             nxt = next((s for s in stopes if s["status"] == "planned" and s["level_bottom"] in (-225, -250)), None)

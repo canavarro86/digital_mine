@@ -171,3 +171,36 @@ def test_ready_faces_puts_incompatible_last(client):
     oks = [x["ok"] for x in rf]
     assert oks == sorted(oks, reverse=True)  # совместимые с машиной — первыми
     assert all(x["issues"] for x in rf if not x["ok"])
+
+
+def test_done_face_replaced_once(client):
+    """Законченная камера вводит в работу одну следующую — не новую на каждом шаге и не после рестарта эмулятора."""
+    import asyncio
+
+    from common.db import session_scope
+    from common.models import Face
+
+    emu = _emulator(client)
+    calls = []
+
+    async def replace(f):
+        calls.append(f["id"])
+
+    emu.replace_done = replace
+    with session_scope() as db:
+        f = next(x for x in db.query(Face).all() if x.kind == "stope" and x.status == "ready")
+        fid, f.status = f.id, "analyzed"
+    face = lambda st, cyc: {"id": fid, "status": st, "cycle_no": cyc, "kind": "stope"}  # noqa: E731
+    board = {"rows": []}
+
+    async def run():
+        await emu.step_faces([face("analyzed", 1)], board, 0.0)
+        for _ in range(5):
+            await emu.step_faces([face("done", 2)], board, 0.0)
+
+    asyncio.run(run())
+    assert calls == [fid]
+    fresh = _emulator(client)  # после рестарта законченный забой уже «done» — не заменяется повторно
+    fresh.replace_done = replace
+    asyncio.run(fresh.step_faces([face("done", 2)], board, 0.0))
+    assert calls == [fid]
