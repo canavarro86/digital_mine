@@ -26,7 +26,7 @@
     "blast_in": "tronadura en {{left}}"
   },
   "profile": {"title": "Perfil", "settings": "Ajustes", "full_name": "Nombre completo", "language": "Idioma", "timezone": "Zona horaria"},
-  "dash": {"advance_day": "Avance del día", "kish": "Rendimiento del disparo hoy", "extra_rock": "Sobrequiebre del día", "stope_t": "Toneladas tronadas en caserones", "faces": "Frentes"},
+  "dash": {"advance_day": "Avance del día", "kish": "Rendimiento del disparo hoy", "extra_rock": "Sobrequiebre del día", "stope_t": "Toneladas tronadas en caserones", "extracted": "Extracción de caserones del día", "faces": "Frentes"},
   "board": {
     "person": "Persona", "machine": "Equipo", "face": "Frente", "work": "Trabajo", "state": "Estado", "no_order": "No hay asignación para el turno actual",
     "on_plan": "En el plano", "line_holes": "{{done}} de {{total}} tiros", "line_ring": "abanico {{ring}}, tiro {{hole}} de {{total}}",
@@ -226,7 +226,7 @@
     "by_period": "Turno / día / mes", "by_face": "Por frente", "by_machine": "Por jumbo", "by_person": "Por perforista",
     "upload_drill": "Cargar reporte de perforación", "shift_zip": "Exportar informe del turno (ZIP)", "pdf": "PDF",
     "period": {"shift": "Turno", "day": "Día", "month": "Mes"}, "dev_advance": "Avance, m", "kish": "Rendimiento", "overbreak": "Sobreexcavación, %",
-    "extra_t": "Roca extra, t", "extra_cost": "Roca extra, USD", "stope_t": "Toneladas en caserones", "elos": "ELOS (prom.)", "dilution": "Dilución, %",
+    "extra_t": "Roca extra, t", "extra_cost": "Roca extra, USD", "stope_extracted": "Extracción de caserones", "stope_t": "Toneladas en caserones", "elos": "ELOS (prom.)", "dilution": "Dilución, %",
     "losses_usd": "Pérdidas, USD", "expl_plan": "Explosivo plan, kg", "expl_fact": "Explosivo real, kg", "summary": "Resumen", "details": "Ciclos",
     "choose_drill_file": "Archivo desde USB / tableta", "drill_formats": "CSV o IREDES XML", "uploaded": "Tiros recibidos: {{n}}",
     "col": {"face": "Frente", "kind": "Tipo", "cycle": "Ciclo", "advance": "Avance, m", "kish": "Rendimiento", "overbreak_pct": "Sobreexcavación, %", "extra_t": "Roca extra, t", "extra_cost": "Roca extra, USD", "elos_hw": "ELOS, m", "dilution_pct": "Dilución, %", "cause": "Causa", "explosive_plan_kg": "Explosivo plan, kg", "explosive_fact_kg": "Explosivo real, kg", "drill_m": "Metros", "drilled": "Perforados", "not_drilled": "No perforados", "mean_deviation_pct": "Desviación, %"},
@@ -300,7 +300,7 @@
     "workflow.transition": "Estados del frente, reportes de perforación", "workflow.blast": "Tronadura (recepción, carguío, disparo)",
     "alerts.dispatch.view": "Alertas del despachador: ver", "alerts.dispatch.act": "Alertas del despachador: acciones", "alerts.engineer.view": "Alertas del ingeniero",
     "alerts.admin.view": "Alertas técnicas", "reports.view": "Informes y exportaciones", "ai.use": "Análisis IA", "console.use": "Consola del emulador"},
-  "emulator": {"start": "Iniciar", "pause": "Pausa", "reset": "Reiniciar", "reset_confirm": "¿Reiniciar el emulador (los datos se conservan)?", "speed": "Velocidad",
+  "emulator": {"start": "Iniciar", "pause": "Pausa", "reset": "Reiniciar", "demo_reset": "Restablecer mina demo", "demo_reset_confirm": "¿Volver la mina demo a su estado inicial? Se eliminarán órdenes de turno, ciclos, informes, alertas y eventos mineros; el emulador continuará con la misma velocidad y escenarios.", "reset_confirm": "¿Reiniciar el emulador (los datos se conservan)?", "speed": "Velocidad",
     "dispatch": "Despacho", "auto_dispatch": "Reasignación automática (si no, mediante alertas del despachador)", "load": "Escenario de carga (HPA)",
     "load_enable": "Activar", "events_per_s": "eventos/s", "load_note": "Flujo de eventos a NATS y cálculos en calc — escala las réplicas de ingest y calc.",
     "dev_scenarios": "Escenarios de desarrollo (15.1)", "stope_scenarios": "Escenarios de explotación (15.2)", "ops_scenarios": "Operacionales",

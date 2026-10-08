@@ -42,6 +42,7 @@ def mine_config() -> dict:
                                      {"shift": 2, "start": "07:00", "end": "08:00", "note": "blast_vent"}],
                    "ventilation_min": 30, "reentry_min": 30, "blast_zone": "mine"},
         "densities": {"ore": 2.9, "waste": 2.7},
+        "capacity_t_year": 1_000_000,  # производственная мощность: выпуск руды ~2740 т/сутки
         "costs": {"haulage_per_t": 4.5, "processing_per_t": 14},
         "sections": {
             "ramp": {"shape": "arch", "width": 5.5, "height": 5.5, "arch_height": 1.4},

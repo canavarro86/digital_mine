@@ -6,7 +6,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import yaml
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from common.models import (
@@ -265,3 +265,56 @@ def reset_mine(db: Session, mine: Mine) -> None:
         db.execute(delete(model).where(model.mine_id == mine.id))
     db.delete(mine)
     db.commit()
+
+
+DEMO_CODE = "default_mine"
+
+
+def reset_demo(db: Session, mines_dir: Path) -> dict:
+    """Демо-рудник в исходное состояние: удаляются его выработки, камеры, забои, паспорта, флот, персонал
+    и вся работа (наряды, циклы, отчеты буровой, журналы, сканы, анализы, алерты); пакет генерируется заново
+    и загружается. Пользователи, роли, настройки, справочники и аудит остаются."""
+    from common.models import (
+        Alert,
+        Analysis,
+        Assignment,
+        ChargeLog,
+        CorrectionPlan,
+        DrillReport,
+        FaceEvent,
+        PassportRecalc,
+        Reassignment,
+        Scan,
+        ShiftOrder,
+    )
+    from core import mine_gen
+
+    mine = db.scalar(select(Mine).where(Mine.code == DEMO_CODE))
+    if mine:
+        faces = list(db.scalars(select(Face.id).where(Face.mine_id == mine.id)))
+        works = list(db.scalars(select(Working.id).where(Working.mine_id == mine.id)))
+        stopes = list(db.scalars(select(Stope.id).where(Stope.mine_id == mine.id)))
+        people = list(db.scalars(select(Person.id).where(Person.mine_id == mine.id)))
+        orders = list(db.scalars(select(ShiftOrder.id).where(ShiftOrder.mine_id == mine.id)))
+        asg = list(db.scalars(select(Assignment.id).where(Assignment.order_id.in_(orders))))
+        for model in (Analysis, Scan, ChargeLog, PassportRecalc, DrillReport, FaceEvent):
+            db.execute(delete(model).where(model.face_id.in_(faces)))
+        db.execute(delete(Reassignment).where(Reassignment.assignment_id.in_(asg)))
+        db.execute(delete(Assignment).where(Assignment.id.in_(asg)))
+        db.execute(delete(ShiftOrder).where(ShiftOrder.id.in_(orders)))
+        db.execute(delete(Alert))
+        db.execute(delete(CorrectionPlan).where(CorrectionPlan.stope_id.in_(stopes)))
+        db.execute(delete(DevPassport).where(DevPassport.working_id.in_(works)))
+        db.execute(delete(RingDesign).where(RingDesign.stope_id.in_(stopes)))
+        tps = list(db.scalars(select(TypicalPassport.id).where(TypicalPassport.mine_id == mine.id)))
+        db.execute(delete(TypicalPassportVersion).where(TypicalPassportVersion.passport_id.in_(tps)))
+        db.execute(delete(TypicalPassport).where(TypicalPassport.id.in_(tps)))
+        db.execute(delete(Permit).where(Permit.person_id.in_(people)))
+        db.execute(delete(Person).where(Person.id.in_(people)))
+        db.execute(delete(Machine).where(Machine.mine_id == mine.id))
+        reset_mine(db, mine)
+    path = mines_dir / DEMO_CODE
+    mine_gen.generate(path)  # пакет — по текущему генератору (демо-данные, мощность рудника)
+    m = load_package(db, path)
+    return {"mine": m.code, "faces": db.scalar(select(func.count(Face.id)).where(Face.mine_id == m.id)),
+            "stopes_active": db.scalar(select(func.count(Stope.id)).where(Stope.mine_id == m.id, Stope.status == "active"))}

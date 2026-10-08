@@ -18,3 +18,4 @@ services/web/test-results/
 kubeconfig*
 # рудник генерируется при первом запуске
 mines/default_mine/
+CLAUDE.local.md

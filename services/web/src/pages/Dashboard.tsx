@@ -20,7 +20,7 @@ export default function Dashboard() {
         <Stat label={t("dash.advance_day")} value={fmtNum(rep.development.advance_m)} unit={t("units.m")} />
         <Stat label={t("dash.kish")} value={fmtNum(rep.development.kish, 2)} />
         <Stat label={t("dash.extra_rock")} value={fmtNum(rep.development.extra_t, 0)} unit={t("units.t")} />
-        <Stat label={t("dash.stope_t")} value={fmtNum(rep.stoping.blasted_t, 0)} unit={t("units.t")} />
+        <Stat label={t("dash.extracted")} value={fmtNum(rep.stoping.extracted_t, 0)} unit={t("units.t")} />
       </div>}
       <div className="grid g2">
         {can("dispatch.view") && <Card title={t("menu.board")} actions={<Link to="/dispatch/board">{t("common.open")}</Link>}><BoardTable compact /></Card>}

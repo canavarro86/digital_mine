@@ -5,9 +5,9 @@ import asyncio
 import json
 import logging
 import threading
-from datetime import datetime, timezone
 
 from .settings import get_settings
+from .timeutil import utcnow
 from .web import EVENTS
 
 log = logging.getLogger("bus")
@@ -31,7 +31,7 @@ async def connect():
 
 def envelope(kind: str, data: dict) -> bytes:
     data = dict(data)
-    data.setdefault("ts", datetime.now(timezone.utc).isoformat())
+    data.setdefault("ts", utcnow().isoformat())
     data["type"] = kind
     return json.dumps(data, ensure_ascii=False, default=str).encode()
 

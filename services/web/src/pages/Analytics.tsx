@@ -78,6 +78,7 @@ export function Reports() {
             <Stat label={t("reports.kish")} value={fmtNum(rep.development.kish, 2)} />
             <Stat label={t("reports.extra_t")} value={fmtNum(rep.development.extra_t, 0)} unit={t("units.t")} />
             <Stat label={t("reports.extra_cost")} value={fmtNum(rep.development.extra_cost, 0)} unit="USD" />
+            <Stat label={t("reports.stope_extracted")} value={fmtNum(rep.stoping.extracted_t, 0)} unit={t("units.t")} />
             <Stat label={t("reports.stope_t")} value={fmtNum(rep.stoping.blasted_t, 0)} unit={t("units.t")} />
             <Stat label={t("reports.elos")} value={fmtNum(rep.stoping.elos_hw, 2)} unit={t("units.m")} />
             <Stat label={t("reports.dilution")} value={fmtNum(rep.stoping.dilution_pct)} unit="%" />

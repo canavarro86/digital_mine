@@ -39,7 +39,7 @@ from core import geometry as g
 from core import importers, passport, rings, scans
 
 from ..deps import CurrentUser, audit, get_current_user, require
-from ..svc import active_mine, analyzer, calc, economics, geology_at, get_setting
+from ..svc import active_mine, analyzer, calc, economics, geology_at, time_scale
 
 router = APIRouter(prefix="/api/workflow", tags=["workflow"])
 VIEW = require("dispatch.view", "workings.view")
@@ -67,8 +67,7 @@ def emulated_blast_window(db: Session, body: dict, user: CurrentUser) -> bool:
     принимается только от служебного пользователя эмулятора и только пока эмулятор запущен с ускорением."""
     if not (body.get("emulated_window") and user.service and user.username.startswith("emulator")):
         return False
-    emu = get_setting(db, "emulator") or {}
-    return bool(emu.get("running")) and float(emu.get("speed", 1)) > 1
+    return time_scale(db) > 1
 
 
 def blast_window_check(db: Session, f: Face, body: dict, user: CurrentUser) -> str:

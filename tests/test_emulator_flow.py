@@ -24,9 +24,23 @@ def client():
     fresh()
     try:
         with TestClient(app) as c:
+            c.baseline = _demo_counts()  # исходный демо-рудник — для проверки сброса
             yield c
     finally:
         fresh()
+
+
+def _demo_counts() -> dict:
+    from common.db import session_scope
+    from common.models import Analysis, Face, Machine, Person, ShiftOrder, Stope, Working
+
+    with session_scope() as db:
+        return {"faces": db.query(Face).count(), "workings": db.query(Working).count(),
+                "stopes_active": db.query(Stope).filter_by(status="active").count(),
+                "driving": db.query(Working).filter_by(status="driving").count(),
+                "fleet": db.query(Machine).count(), "staff": db.query(Person).count(),
+                "orders": db.query(ShiftOrder).count(), "analyses": db.query(Analysis).count(),
+                "not_ready": db.query(Face).filter(Face.status != "ready").count()}
 
 
 class SyncApi:
@@ -204,3 +218,62 @@ def test_done_face_replaced_once(client):
     fresh.replace_done = replace
     asyncio.run(fresh.step_faces([face("done", 2)], board, 0.0))
     assert calls == [fid]
+
+
+def _demo_reset(client):
+    r = client.post("/api/emulator/demo-reset", headers=SyncApi(client).h)
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_demo_reset_returns_initial_mine(client):
+    """«Сброс демо-рудника»: после работы эмулятора (циклы, наряды, введенные камеры) — исходный рудник."""
+    api = SyncApi(client)
+    stopes = client.get("/api/rings/stopes", headers=api.h).json()
+    extra = next(s for s in stopes if s["status"] == "planned")
+    client.post(f"/api/rings/stopes/{extra['id']}/activate", json={}, headers={**api.h, "x-acting-user": "emulator-engineer"})
+    assert _demo_counts() != client.baseline
+    res = _demo_reset(client)
+    assert res["mine"] == "default_mine"
+    assert _demo_counts() == client.baseline
+    assert all(f["status"] == "ready" and f["cycle_no"] == 1 for f in client.get("/api/workflow/faces", headers=api.h).json())
+
+
+def test_one_mine_day_is_realistic(client):
+    """Рудник 1 млн т/год: за одни рудничные сутки (после выхода на режим) очистная выемка 2700–3000 т,
+    проходка 4 буровыми 30–40 м, КИШ 0,85–0,92. Время — виртуальные часы, эмулятор ×500."""
+    import asyncio
+    from datetime import datetime, timezone
+
+    from common.timeutil import set_clock
+
+    _demo_reset(client)
+    speed, tick_s = 500.0, 2.0
+    clock = [datetime.now(timezone.utc)]
+    set_clock(lambda: clock[0])
+    try:
+        import numpy as np
+
+        emu = _emulator(client)
+        emu.speed, emu.rng = speed, np.random.default_rng(1)  # разброс длительностей операций — воспроизводимый
+        _outside_blast_window(client, {**emu.api.h, "x-acting-user": "emulator-engineer"})
+        asyncio.run(emu.save_runtime())
+
+        async def run(days):
+            for _ in range(int(days * 24 / (tick_s * speed / 3600))):
+                clock[0] += timedelta(seconds=tick_s)
+                await emu.tick(tick_s * speed / 3600, telemetry=False)
+
+        asyncio.run(run(4))  # 3 суток выхода на режим (первая камера обуривается ~2 сут) + сутки замера
+        assert emu.stats["errors"] == 0
+        rep = client.get("/api/reports/period", params={"period": "day"}, headers=emu.api.h).json()
+    finally:
+        set_clock(None)
+    dev, st = rep["development"], rep["stoping"]
+    summary = {"advance_m": dev["advance_m"], "cycles": dev["cycles"], "kish": dev["kish"], "extracted_t": st["extracted_t"],
+               "blasted_t": st["blasted_t"], "label": rep["label"]}
+    assert "×500" in rep["label"], summary  # рудничные сутки, а не календарные
+    assert 30 <= dev["advance_m"] <= 40, summary
+    assert 0.85 <= dev["kish"] <= 0.92, summary
+    assert 8 <= dev["cycles"] <= 12, summary  # 4 буровые × 2–3 цикла
+    assert 2700 <= st["extracted_t"] <= 3000, summary

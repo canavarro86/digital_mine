@@ -166,6 +166,7 @@ export function Console() {
       <Badge value={st.running ? "working" : "idle"} group="emulator.state" />
       {!st.running ? <Action className="primary" onClick={() => call("start", { speed })}>▶ {t("emulator.start")}</Action> : <Action onClick={() => call("pause")}>⏸ {t("emulator.pause")}</Action>}
       <Action confirm={t("emulator.reset_confirm")} onClick={() => call("reset")}>⟲ {t("emulator.reset")}</Action>
+      <Action confirm={t("emulator.demo_reset_confirm")} onClick={() => call("demo-reset")}>⟲ {t("emulator.demo_reset")}</Action>
     </>}>
       <div className="grid g4" style={{ marginBottom: 12 }}>
         {Object.entries(st.stats).map(([k, v]) => <Stat key={k} label={t(`emulator.stats.${k}`)} value={fmtNum(v, 0)} />)}

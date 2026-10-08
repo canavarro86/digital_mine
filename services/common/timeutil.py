@@ -1,12 +1,21 @@
 """Время: в базе UTC; смены и отчеты — по часовому поясу рудника."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
+_clock: Callable[[], datetime] | None = None
+
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    """Текущий момент UTC — единственный источник времени сервисов (тесты подставляют свои часы: set_clock)."""
+    return _clock() if _clock else datetime.now(timezone.utc)
+
+
+def set_clock(fn: Callable[[], datetime] | None) -> None:
+    global _clock
+    _clock = fn
 
 
 def to_tz(dt: datetime, tz: str) -> datetime:

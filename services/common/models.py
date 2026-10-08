@@ -11,7 +11,9 @@ J = JSON().with_variant(JSONB(), "postgresql")
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    from .timeutil import utcnow as now
+
+    return now()
 
 
 class Base(DeclarativeBase):

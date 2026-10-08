@@ -25,7 +25,7 @@
     "time_site_short": "объект", "time_me_short": "мое", "blast_at": "ВР в {{time}}", "blast_now": "Идут ВР до {{until}}", "blast_in": "до ВР {{left}}"
   },
   "profile": {"title": "Профиль", "settings": "Настройки", "full_name": "ФИО", "language": "Язык", "timezone": "Часовой пояс"},
-  "dash": {"advance_day": "Проходка за сутки", "kish": "КИШ за сутки", "extra_rock": "Лишняя порода за сутки", "stope_t": "Отбито в камерах", "faces": "Забои"},
+  "dash": {"advance_day": "Проходка за сутки", "kish": "КИШ за сутки", "extra_rock": "Лишняя порода за сутки", "stope_t": "Отбито в камерах", "extracted": "Очистная выемка за сутки", "faces": "Забои"},
   "board": {
     "person": "Человек", "machine": "Машина", "face": "Забой", "work": "Работа", "state": "Состояние", "no_order": "Наряд на текущую смену не создан",
     "on_plan": "На плане", "line_holes": "{{done}} из {{total}} шпуров", "line_ring": "веер {{ring}}, скважина {{hole}} из {{total}}",
@@ -220,7 +220,7 @@
     "by_period": "Смена / сутки / месяц", "by_face": "По забою", "by_machine": "По буровой", "by_person": "По проходчику",
     "upload_drill": "Загрузить отчет буровой", "shift_zip": "Выгрузить отчет смены (ZIP)", "pdf": "PDF",
     "period": {"shift": "Смена", "day": "Сутки", "month": "Месяц"}, "dev_advance": "Проходка, м", "kish": "КИШ", "overbreak": "Перебор, %",
-    "extra_t": "Лишняя порода, т", "extra_cost": "Лишняя порода, USD", "stope_t": "Отбито в камерах, т", "elos": "ELOS (ср.)",
+    "extra_t": "Лишняя порода, т", "extra_cost": "Лишняя порода, USD", "stope_extracted": "Очистная выемка, т", "stope_t": "Отбито в камерах, т", "elos": "ELOS (ср.)",
     "dilution": "Разубоживание, %", "losses_usd": "Потери, USD", "expl_plan": "ВВ план, кг", "expl_fact": "ВВ факт, кг", "summary": "Итоги",
     "details": "Циклы", "choose_drill_file": "Файл с флешки / планшета", "drill_formats": "CSV или IREDES XML", "uploaded": "Принято шпуров: {{n}}",
     "col": {"face": "Забой", "kind": "Вид", "cycle": "Цикл", "advance": "Подвигание, м", "kish": "КИШ", "overbreak_pct": "Перебор, %", "extra_t": "Лишняя порода, т", "extra_cost": "Лишняя порода, USD", "elos_hw": "ELOS, м", "dilution_pct": "Разубоживание, %", "cause": "Причина", "explosive_plan_kg": "ВВ план, кг", "explosive_fact_kg": "ВВ факт, кг", "drill_m": "Метры", "drilled": "Пробурено", "not_drilled": "Не пробурено", "mean_deviation_pct": "Отклонение, %"},
@@ -295,7 +295,7 @@
     "workflow.transition": "Статусы забоя, отчеты бурения", "workflow.blast": "Взрывные работы (прием, заряжание, взрыв)",
     "alerts.dispatch.view": "Алерты диспетчера: просмотр", "alerts.dispatch.act": "Алерты диспетчера: действия", "alerts.engineer.view": "Алерты инженера",
     "alerts.admin.view": "Технические алерты", "reports.view": "Отчеты и выгрузки", "ai.use": "Анализ ИИ", "console.use": "Пульт эмулятора"},
-  "emulator": {"start": "Старт", "pause": "Пауза", "reset": "Сброс", "reset_confirm": "Сбросить эмулятор (данные в базе сохранятся)?", "speed": "Скорость",
+  "emulator": {"start": "Старт", "pause": "Пауза", "reset": "Сброс", "demo_reset": "Сброс демо-рудника", "demo_reset_confirm": "Вернуть демо-рудник в исходное состояние? Наряды, циклы, отчеты, алерты и горные события будут удалены; эмулятор продолжит с прежней скоростью и сценариями.", "reset_confirm": "Сбросить эмулятор (данные в базе сохранятся)?", "speed": "Скорость",
     "dispatch": "Диспетчеризация", "auto_dispatch": "Автоматические перестановки (иначе — по алертам диспетчера)", "load": "Нагрузочный сценарий (HPA)",
     "load_enable": "Включить", "events_per_s": "событий/с", "load_note": "Поток событий в NATS и расчетов в calc — поднимает копии ingest и calc.",
     "dev_scenarios": "Сценарии проходки (15.1)", "stope_scenarios": "Сценарии очистной выемки (15.2)", "ops_scenarios": "Оперативные",

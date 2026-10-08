@@ -30,6 +30,17 @@ def set_setting(db: Session, key: str, value: Any) -> None:
         db.add(Setting(key=key, value={"v": value}))
 
 
+def time_scale(db: Session) -> float:
+    """Во сколько раз рудничное время идет быстрее реального: скорость запущенного эмулятора, иначе 1."""
+    emu = get_setting(db, "emulator") or {}
+    return max(1.0, float(emu.get("speed", 1))) if emu.get("running") else 1.0
+
+
+def ore_draw_t_h(mine_cfg: dict) -> float:
+    """Выпуск руды из камер, т/ч: производственная мощность рудника (т/год, по умолчанию 1 млн) / 8760 ч."""
+    return float(mine_cfg.get("capacity_t_year") or 1_000_000) / 8760
+
+
 def active_mine(db: Session) -> Mine:
     m = db.scalar(select(Mine).where(Mine.active.is_(True)))
     if not m:

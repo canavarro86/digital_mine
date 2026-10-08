@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import httpx
 import numpy as np
@@ -18,6 +18,7 @@ from fastapi import Depends, Header, HTTPException
 
 from common.bus import connect, envelope
 from common.settings import get_settings
+from common.timeutil import utcnow
 from common.web import EVENTS, create_app
 from core import scans, simulate
 
@@ -36,10 +37,15 @@ NEXT = {"drilled": "recalculated", "recalculated": "handed", "handed": "accepted
         "blasted": "ventilation", "ventilation": "mucking", "mucking": "scaling", "scaling": "support",
         "support": "surveyed", "surveyed": "analyzed", "analyzed": "ready"}
 NEXT_STOPE = {**NEXT, "blasted": "draw", "draw": "cms", "cms": "analyzed"}
+# камера после обуривания и до выпуска: от «Обурен» до «Выпуск» ~2,7 ч (пересчет, передача, заряжание, взрыв)
+STOPE_PREP = ("recalculated", "handed", "accepted", "charged", "wait_blast", "blasted")
+PREP_H = 3.0
+# операции, которые ведет одна машина: забои ждут ее в очереди (зарядная, ПДМ на уборке, крепление)
+RESOURCE = {"accepted": "charger", "mucking": "lhd", "support": "bolter"}
 
 
 def now() -> datetime:
-    return datetime.now(timezone.utc)
+    return utcnow()
 
 
 def check_token(x_internal_token: str | None = Header(default=None)):
@@ -90,6 +96,8 @@ class Emulator:
         self.order_key = None
         self.assign_retry_at: datetime | None = None
         self.blast_now = False
+        self.fleet: list[dict] = []
+        self.res_ok: set[int] = set()
         self.task: asyncio.Task | None = None
         self.load_task: asyncio.Task | None = None
         self.js = None
@@ -141,6 +149,7 @@ class Emulator:
         """Один шаг эмулятора: dt_h — сколько часов работ рудника прошло (реальные 2 с × скорость)."""
         board = await self.ensure_order()
         faces = await self.api.get("/api/workflow/faces")
+        self.fleet = await self.api.get("/api/fleet")
         # взрыв — в окне ВР по графику смен рудника; при ускорении окно сжимается вместе с работами
         self.blast_now = bool((await self.api.get("/api/mine/shifts")).get("blast_now"))
         await self.step_faces(faces, board, dt_h)
@@ -218,7 +227,23 @@ class Emulator:
 
     # ---------- забои ----------
     async def step_faces(self, faces: list[dict], board: dict, dt_h: float) -> None:
+        """Ограничения рудника: проходческих забоев в цикле — не больше буровых на проходке (каждая ведет свой
+        забой, 2–3 цикла в сутки); камер в бурении и обуренных — не больше буровых на веерах; следующая камера
+        готовится к взрыву, когда выпуск текущей подходит к концу — выпуск руды идет непрерывно с
+        производительностью рудника (мощность / 8760 ч), а не всеми камерами сразу."""
         drill_rows = {r["face_id"]: r for r in board["rows"] if r["work_type"] in ("drilling", "ring_drilling")}
+        rigs = {k: sum(1 for r in board["rows"] if r["work_type"] == w) for k, w in (("dev", "drilling"),
+                                                                                     ("stope", "ring_drilling"))}
+        busy = {"dev": sum(1 for f in faces if f["kind"] == "dev" and f["status"] not in ("ready", "done")),
+                "stope": sum(1 for f in faces if f["kind"] == "stope" and f["status"] in ("drilling", "drilled"))}
+        # машины на операциях: первые по времени поступления забои (по числу исправных машин) работают, прочие ждут
+        cap = {t: sum(1 for m in self.fleet if m["type"] == t and m["status"] in ("working", "idle"))
+               for t in set(RESOURCE.values())}
+        self.res_ok = set()
+        for st_, t in RESOURCE.items():
+            queue = sorted((f for f in faces if f["kind"] == "dev" and f["status"] == st_),
+                           key=lambda f: (f.get("status_since") or "", f["id"]))
+            self.res_ok |= {f["id"] for f in queue[:cap[t] if self.fleet else len(queue)]}
         for f in faces:
             fid, st = f["id"], f["status"]
             prev = self.faces.get(fid, {}).get("status")
@@ -233,34 +258,55 @@ class Emulator:
                 continue
             if st in ("ready", "drilling"):
                 row = drill_rows.get(fid)
+                if row and st == "ready":
+                    if busy[f["kind"]] >= rigs[f["kind"]]:
+                        continue  # буровая ждет, пока освободится забой в цикле / уйдет в работу обуренная камера
+                    busy[f["kind"]] += 1
                 if row:
                     await self.drill(f, row, fs, dt_h)
                 continue
             if st == "accepted":
+                if f["kind"] == "dev" and fid not in self.res_ok:
+                    continue  # зарядная машина на другом забое
                 fs["wait_h"] += dt_h
                 if fs["wait_h"] >= 0.6:
+                    fs["wait_h"] -= 0.6
                     await self.charge(f, fs)
                 continue
+            await self.advance(f, fs, faces, dt_h)
+
+    async def advance(self, f: dict, fs: dict, faces: list[dict], dt_h: float) -> None:
+        """Операции цикла по длительностям STEP_H. За шаг эмулятора забой проходит столько операций, сколько
+        уложилось в прошедшее время (остаток — следующей): длительность цикла не зависит от скорости."""
+        fid, st = f["id"], f["status"]
+        fs["wait_h"] += dt_h
+        while True:
             nxt = (NEXT if f["kind"] == "dev" else NEXT_STOPE).get(st)
-            if not nxt:
-                continue
-            if nxt == "blasted" and not self.blast_now and self.speed <= 1:
-                continue  # ×1: заряжен — ждет окна ВР (вне окна сервер переводит забой в «Ждет ВР»)
-            need = STEP_H.get(st, 0.5)
+            blocked = (not nxt or (nxt == "blasted" and not self.blast_now and self.speed <= 1)  # ×1: ждет окна ВР
+                       or (f["kind"] == "stope" and st == "drilled" and not self.stope_gate(faces, fid))
+                       or (f["kind"] == "dev" and st in RESOURCE and fid not in self.res_ok))  # машина занята
+            if blocked:
+                fs["wait_h"] = min(fs["wait_h"], dt_h)  # ожидание — не работа: время не копится
+                return
+            if fs.get("need_for") != st:  # длительность операции — с разбросом ±15 %, один раз на операцию
+                fs["need_for"], fs["need_k"] = st, float(self.rng.uniform(0.85, 1.15))
+            need = STEP_H.get(st, 0.5) * fs["need_k"]
+            if st == "draw":
+                need = await self.draw_hours(f, fs)
             if st == "handed" and "blasters_late" in self.scenarios:
                 need = 2.5 + 2 * K[self.scenarios["blasters_late"]]
-            fs["wait_h"] += dt_h
             if fs["wait_h"] < need:
-                continue
-            fs["wait_h"] = 0.0
+                return
+            fs["wait_h"] -= need
             if nxt in ("surveyed", "cms"):
                 await self.survey(f, fs)
+                r = {}
             elif nxt == "analyzed":
                 r = await self.api.post(f"/api/workflow/faces/{fid}/transition", {"to": "analyzed"}, as_user="emulator-engineer")
                 if "_error" not in r:
                     self.stats["cycles"] += 1
             elif nxt == "recalculated":
-                await self.api.post(f"/api/workflow/faces/{fid}/recalc", as_user="emulator-engineer")
+                r = await self.api.post(f"/api/workflow/faces/{fid}/recalc", as_user="emulator-engineer")
             else:
                 user = {"accepted": "emulator-blaster", "blasted": "emulator-blaster"}.get(nxt, "emulator-foreman")
                 body = {"to": nxt}
@@ -268,7 +314,35 @@ class Emulator:
                     # окна ВР идут по реальным часам, работы — ×скорость: ждать окна — часы на каждый цикл.
                     # Взрыв по сжатому окну эмулятора; сервер принимает его, только пока эмулятор ускорен
                     body["emulated_window"] = True
-                await self.api.post(f"/api/workflow/faces/{fid}/transition", body, as_user=user)
+                r = await self.api.post(f"/api/workflow/faces/{fid}/transition", body, as_user=user)
+            if "_error" in r or nxt == "ready":
+                return  # новый цикл — со следующего шага (номер цикла, «Готов» / «Закончен»)
+            st = nxt
+
+    def stope_gate(self, faces: list[dict], fid: int) -> bool:
+        """Обуренную камеру готовят к взрыву, если другая не готовится и выпуск текущих кончится за PREP_H."""
+        for o in faces:
+            if o["kind"] != "stope" or o["id"] == fid:
+                continue
+            if o["status"] in STOPE_PREP:
+                return False
+            if o["status"] == "draw":
+                os_ = self.faces.get(o["id"], {})
+                if os_.get("draw_h", 0) - os_.get("wait_h", 0) > PREP_H:
+                    return False
+        return True
+
+    async def draw_hours(self, f: dict, fs: dict) -> float:
+        """Длительность выпуска руды камеры: тоннаж камеры / выпуск руды рудника, т/ч."""
+        if "draw_h" not in fs:
+            mine = await self.api.get("/api/mine")
+            cfg = mine.get("config") or {}
+            st = await self.api.get(f"/api/rings/stopes/{f['stope_id']}")
+            gm = st["geometry"]
+            t = (abs(gm["x_hw"] - gm["x_fw"]) * abs(gm["y1"] - gm["y0"]) * abs(st["level_top"] - st["level_bottom"])
+                 * float((cfg.get("densities") or {}).get("ore", 2.9)))
+            fs["draw_h"] = t / (float(cfg.get("capacity_t_year") or 1_000_000) / 8760)
+        return fs["draw_h"]
 
     async def drill(self, f: dict, row: dict, fs: dict, dt_h: float) -> None:
         fid = f["id"]
@@ -403,6 +477,7 @@ class Emulator:
         if not self.auto_dispatch:
             return
         fmap = {f["id"]: f for f in faces}
+        taken = {r["face_id"] for r in board["rows"] if r["work_type"] in ("drilling", "ring_drilling")}
         for r in board["rows"]:
             if r["work_type"] not in ("drilling", "ring_drilling"):
                 continue
@@ -414,6 +489,8 @@ class Emulator:
                 self.free_since[r["assignment_id"]] = since = now()
             if (now() - since).total_seconds() / 3600 * self.speed < self.dispatch_delay_h:
                 continue
+            if not any(x["status"] == "ready" and x["kind"] == f["kind"] and x["id"] not in taken for x in faces):
+                continue  # готовых свободных забоев нет — запрашивать API незачем
             fleet = {m["label"]: m for m in await self.api.get("/api/fleet")}
             m = fleet.get(r["machine"])
             rf = await self.api.get("/api/dispatch/ready-faces", machine_id=m["id"], face_id=f["id"])
@@ -432,7 +509,7 @@ class Emulator:
         if not self.js:
             return
         rows = {r["machine"]: r for r in board["rows"]}
-        fleet = await self.api.get("/api/fleet")
+        fleet = self.fleet or await self.api.get("/api/fleet")
         fpos = {f["name"]: self.positions.get(f["id"]) for f in faces}
         for m in fleet:
             if "machine_idle" in self.scenarios and m["label"] == "ПДМ №32":
@@ -500,6 +577,11 @@ async def start(body: dict | None = None):
 @app.post("/emulator/pause", dependencies=[Depends(check_token)])
 async def pause(body: dict | None = None):
     EMU.running = False
+    if EMU.task and not EMU.task.done():  # дождаться конца текущего шага: после паузы эмулятор не пишет в API
+        try:
+            await asyncio.wait_for(asyncio.shield(EMU.task), timeout=60)
+        except Exception:
+            pass
     await EMU.save_runtime()
     EMU.note("пауза")
     return EMU.state()

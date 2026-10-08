@@ -205,7 +205,14 @@ def main() -> None:
     setup_logging()
     ap = argparse.ArgumentParser()
     ap.add_argument("--start-emulator", action="store_true")
+    ap.add_argument("--reset-demo", action="store_true", help="демо-рудник в исходное состояние (make reset-demo)")
     a = ap.parse_args()
+    if a.reset_demo:
+        from .routers.emulator import demo_reset
+
+        with session_scope() as db:
+            print("reset-demo:", demo_reset(db))
+        return
     res = run_all(background_grafana=False)
     print("bootstrap:", res)
     if a.start_emulator:

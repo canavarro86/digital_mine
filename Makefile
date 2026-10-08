@@ -14,7 +14,7 @@ CLUSTER ?= digital-mine
 NS      ?= digital-mine
 s       ?= api
 
-.PHONY: help tools up down status demo logs test lint build import deploy backup restore
+.PHONY: help tools up down status demo reset-demo logs test lint build import deploy backup restore
 
 help: ## Список команд
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n",$$1,$$2}'
@@ -39,6 +39,9 @@ deploy: ## Переустановить helm-релизы (без пересбо
 
 demo: ## Запустить эмулятор со сценариями
 	@bash scripts/demo.sh
+
+reset-demo: ## Демо-рудник в исходное состояние (наряды, циклы, отчеты, события — заново)
+	@kubectl -n $(NS) exec deploy/api -- python -m api.bootstrap --reset-demo
 
 logs: ## Логи сервиса: make logs s=api
 	@kubectl -n $(NS) logs -l app.kubernetes.io/component=$(s) --tail=200 -f --max-log-requests 10

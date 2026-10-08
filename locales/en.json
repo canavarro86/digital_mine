@@ -25,7 +25,7 @@
     "blast_in": "blast in {{left}}"
   },
   "profile": {"title": "Profile", "settings": "Settings", "full_name": "Full name", "language": "Language", "timezone": "Time zone"},
-  "dash": {"advance_day": "Advance today", "kish": "Pull factor today", "extra_rock": "Extra rock today", "stope_t": "Stope tonnes blasted", "faces": "Faces"},
+  "dash": {"advance_day": "Advance today", "kish": "Pull factor today", "extra_rock": "Extra rock today", "stope_t": "Stope tonnes blasted", "extracted": "Stope ore extracted today", "faces": "Faces"},
   "board": {
     "person": "Person", "machine": "Machine", "face": "Face", "work": "Work", "state": "State", "no_order": "No line-up for the current shift",
     "on_plan": "On plan", "line_holes": "{{done}} of {{total}} holes", "line_ring": "ring {{ring}}, hole {{hole}} of {{total}}",
@@ -216,7 +216,7 @@
   "reports": {
     "by_period": "Shift / day / month", "by_face": "By face", "by_machine": "By rig", "by_person": "By operator", "upload_drill": "Upload drill report",
     "shift_zip": "Export shift report (ZIP)", "pdf": "PDF", "period": {"shift": "Shift", "day": "Day", "month": "Month"}, "dev_advance": "Development, m",
-    "kish": "Pull factor", "overbreak": "Overbreak, %", "extra_t": "Extra rock, t", "extra_cost": "Extra rock, USD", "stope_t": "Stope tonnes",
+    "kish": "Pull factor", "overbreak": "Overbreak, %", "extra_t": "Extra rock, t", "extra_cost": "Extra rock, USD", "stope_extracted": "Stope ore extracted", "stope_t": "Stope tonnes",
     "elos": "ELOS (avg)", "dilution": "Dilution, %", "losses_usd": "Losses, USD", "expl_plan": "Explosive plan, kg", "expl_fact": "Explosive actual, kg",
     "summary": "Summary", "details": "Cycles", "choose_drill_file": "File from USB / tablet", "drill_formats": "CSV or IREDES XML",
     "uploaded": "Holes accepted: {{n}}",
@@ -291,7 +291,7 @@
     "workflow.transition": "Face statuses, drill reports", "workflow.blast": "Blasting (accept, charge, fire)",
     "alerts.dispatch.view": "Dispatcher alerts: view", "alerts.dispatch.act": "Dispatcher alerts: actions", "alerts.engineer.view": "Engineer alerts",
     "alerts.admin.view": "Technical alerts", "reports.view": "Reports and exports", "ai.use": "AI analysis", "console.use": "Emulator console"},
-  "emulator": {"start": "Start", "pause": "Pause", "reset": "Reset", "reset_confirm": "Reset the emulator (database data is kept)?", "speed": "Speed",
+  "emulator": {"start": "Start", "pause": "Pause", "reset": "Reset", "demo_reset": "Reset demo mine", "demo_reset_confirm": "Return the demo mine to its initial state? Shift orders, cycles, reports, alerts and mining events will be deleted; the emulator continues with the same speed and scenarios.", "reset_confirm": "Reset the emulator (database data is kept)?", "speed": "Speed",
     "dispatch": "Dispatching", "auto_dispatch": "Automatic reassignment (otherwise via dispatcher alerts)", "load": "Load scenario (HPA)",
     "load_enable": "Enable", "events_per_s": "events/s", "load_note": "Event stream to NATS and calc requests — scales up ingest and calc replicas.",
     "dev_scenarios": "Development scenarios (15.1)", "stope_scenarios": "Stoping scenarios (15.2)", "ops_scenarios": "Operational",

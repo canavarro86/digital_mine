@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import io
 import zipfile
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Response
@@ -18,7 +18,7 @@ from common.web import attachment
 from core import exporters
 
 from ..deps import CurrentUser, audit, require
-from ..svc import active_mine
+from ..svc import active_mine, ore_draw_t_h, time_scale
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 VIEW = require("reports.view")
@@ -34,6 +34,13 @@ def _period(db: Session, period: str, day: str | None, shift_no: int | None) -> 
     cfg = m.config
     sh = current_shift(cfg)
     d = day or sh["date"]
+    scale = time_scale(db)
+    if scale > 1 and not day and not shift_no and period in ("shift", "day"):
+        # эмулятор ускорен: в календарные сутки рудника попадают сотни рудничных суток — текущие смена и сутки
+        # считаются как последние 12 / 24 ч рудничного времени (реальное время / скорость)
+        e = utcnow()
+        dur = (sh["end"] - sh["start"]) if period == "shift" else timedelta(days=1)
+        return e - dur / scale, e, f"{d} · ×{scale:g}"
     if period == "shift":
         n = shift_no or sh["shift_no"]
         s, e = shift_bounds(cfg, d, n)
@@ -52,6 +59,41 @@ def _period(db: Session, period: str, day: str | None, shift_no: int | None) -> 
 
 def _analyses(db: Session, s: datetime, e: datetime) -> list[Analysis]:
     return list(db.scalars(select(Analysis).where(Analysis.created_at >= s, Analysis.created_at < e)))
+
+
+def ore_drawn_t(db: Session, s: datetime, e: datetime) -> float:
+    """Очистная выемка за интервал: время, когда из камер шел выпуск руды (статус «Выпуск» до съемки CMS;
+    одновременные выпуски не суммируются — их ограничивает производительность доставки), × выпуск руды рудника
+    (мощность / 8760 ч). При ускоренном эмуляторе реальное время пересчитывается в рудничное."""
+    stope_ids = {f.id for f in db.scalars(select(Face).where(Face.kind == "stope"))}
+    ev = db.scalars(select(FaceEvent).where(FaceEvent.ts < e, FaceEvent.ts >= s - timedelta(days=60),
+                                            FaceEvent.to_status.in_(("draw", "cms"))).order_by(FaceEvent.id)).all()
+    start: dict[tuple, datetime] = {}
+    spans = []
+    for x in ev:
+        if x.face_id not in stope_ids:
+            continue
+        key = (x.face_id, x.cycle_no)
+        if x.to_status == "draw":
+            start[key] = _aware(x.ts)
+        elif key in start:
+            spans.append((start.pop(key), _aware(x.ts)))
+    spans += [(t0, e) for t0 in start.values()]  # выпуск идет сейчас
+    hours, cur = 0.0, None
+    for a, b in sorted((max(a, s), min(b, e)) for a, b in spans if b > s and a < e):
+        if cur and a <= cur[1]:
+            cur = (cur[0], max(cur[1], b))
+            continue
+        if cur:
+            hours += (cur[1] - cur[0]).total_seconds() / 3600
+        cur = (a, b)
+    if cur:
+        hours += (cur[1] - cur[0]).total_seconds() / 3600
+    return hours * time_scale(db) * ore_draw_t_h(active_mine(db).config)
+
+
+def _aware(dt: datetime) -> datetime:
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
 def period_report(db: Session, period: str, day: str | None, shift_no: int | None) -> dict:
@@ -79,6 +121,7 @@ def period_report(db: Session, period: str, day: str | None, shift_no: int | Non
                         "extra_t": round(sum(r.get("extra_t", 0) for r in dev), 1),
                         "extra_cost": round(sum(r.get("extra_cost", 0) for r in dev), 0)},
         "stoping": {"blasts": len(st), "blasted_t": round(sum(r.get("blasted_t", 0) for r in st), 0),
+                    "extracted_t": round(ore_drawn_t(db, s, e), 0),
                     "elos_hw": _mean([r.get("elos_hw") for r in st]),
                     "dilution_pct": _mean([r.get("dilution_pct") for r in st]),
                     "loss_t": round(sum(r.get("loss_t", 0) for r in st), 0),
@@ -193,7 +236,8 @@ def _render(kind: str, data: dict, lang: str, fmt: str, mine_name: str, gen: str
                 for r in data["cycles"]]
         kv = [(t("reports.dev_advance"), data["development"]["advance_m"]), (t("reports.kish"), data["development"]["kish"]),
               (t("reports.overbreak"), data["development"]["overbreak_pct"]), (t("reports.extra_t"), data["development"]["extra_t"]),
-              (t("reports.extra_cost"), data["development"]["extra_cost"]), (t("reports.stope_t"), data["stoping"]["blasted_t"]),
+              (t("reports.extra_cost"), data["development"]["extra_cost"]), (t("reports.stope_extracted"), data["stoping"]["extracted_t"]),
+              (t("reports.stope_t"), data["stoping"]["blasted_t"]),
               (t("reports.elos"), data["stoping"]["elos_hw"]), (t("reports.dilution"), data["stoping"]["dilution_pct"]),
               (t("reports.losses_usd"), data["stoping"]["loss_cost"]), (t("reports.expl_plan"), data["explosives"]["plan_kg"]),
               (t("reports.expl_fact"), data["explosives"]["fact_kg"]),
