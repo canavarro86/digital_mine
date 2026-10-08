@@ -77,7 +77,7 @@ def stope_charge(rings: list[dict], scenario: str, k: float, rng: np.random.Gene
 
 
 def observations(scenario: str, k: float) -> dict:
-    """Что фиксируют маркшейдер и геолог при съёмке (приток, кливаж, вывалы, отслоение висячего бока)."""
+    """Что фиксируют маркшейдер и геолог при съемке (приток, кливаж, вывалы, отслоение висячего бока)."""
     return {
         "water": {"water": "flowing"},
         "fracturing": {"fracture_cat": 5 if k > 1 else 4},

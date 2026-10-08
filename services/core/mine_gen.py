@@ -114,7 +114,7 @@ def _status_for(w: dict) -> str:
 
 
 def generate(dest: Path, seed: int = 42) -> dict:
-    """Создаёт пакет рудника в dest. Возвращает сводку."""
+    """Создает пакет рудника в dest. Возвращает сводку."""
     rng = np.random.default_rng(seed)
     cfg = mine_config()
     dest.mkdir(parents=True, exist_ok=True)
@@ -197,7 +197,7 @@ def generate(dest: Path, seed: int = 42) -> dict:
         "default_rock": "ANDESITE",
         "ore_rock": "ORE_QZ_CU_AU",
         "assignments": [
-            {"target": "interval", "name": "Обводнённый интервал", "working": "ПШ−250 (С)", "ch_from": 40,
+            {"target": "interval", "name": "Обводненный интервал", "working": "ПШ−250 (С)", "ch_from": 40,
              "ch_to": 120, "rock": "ANDESITE", "overrides": {"water": "flowing", "inflow_lpm": 45}},
             {"target": "interval", "name": "Трещиноватый интервал", "working": "ПШ−200 (С)", "ch_from": 100,
              "ch_to": 180, "rock": "ANDESITE_FRAC", "overrides": {"fracture_cat": 4}},
@@ -213,7 +213,7 @@ def generate(dest: Path, seed: int = 42) -> dict:
     with open(dest / "geology" / "zones.yaml", "w", encoding="utf-8") as f:
         yaml.safe_dump(geology, f, allow_unicode=True, sort_keys=False)
 
-    # ---- типовые паспорта (исходные данные; расчёт выполняется при загрузке) ----
+    # ---- типовые паспорта (исходные данные; расчет выполняется при загрузке) ----
     typical = {"passports": [
         {"number": "ТП-01", "name": "ПШ и заезды 5,0×5,0 (арка), f 8–12, сухо — АНФО", "working_type": "fwd",
          "section": cfg["sections"]["fwd"], "f_min": 8, "f_max": 12, "water": ["dry", "damp"],
@@ -224,7 +224,7 @@ def generate(dest: Path, seed: int = 42) -> dict:
         {"number": "ТП-03", "name": "БДО 4,5×4,5 (арка), f 8–16 — эмульсия", "working_type": "xc",
          "section": cfg["sections"]["xc"], "f_min": 8, "f_max": 16, "water": ["dry", "damp", "dripping", "flowing", "inflow"],
          "explosive": "EMUL_BULK", "contour_explosive": "EMUL_SMOOTH_25", "hole_depth": 3.6, "rock_f": 12, "fracture_cat": 3},
-        {"number": "ТП-04", "name": "Автоуклон 5,5×5,5 (арка), f 12–16, обводнённый — эмульсия", "working_type": "ramp",
+        {"number": "ТП-04", "name": "Автоуклон 5,5×5,5 (арка), f 12–16, обводненный — эмульсия", "working_type": "ramp",
          "section": cfg["sections"]["ramp"], "f_min": 12, "f_max": 16, "water": ["dry", "damp", "dripping", "flowing", "inflow"],
          "explosive": "EMUL_BULK", "contour_explosive": "EMUL_SMOOTH_25", "hole_depth": 4.2, "rock_f": 14, "fracture_cat": 2},
     ], "rings": {"explosive": "EMUL_BULK", "hole_diameter": 89, "direction": "up", "standoff": 0.7}}
@@ -264,7 +264,7 @@ def generate(dest: Path, seed: int = 42) -> dict:
         ("Lebedev Pavel", ["lhd_operator"], "Б", 2), ("Araya Castro Jorge", ["lhd_operator"], "Б", 2),
         ("Козлов Андрей Михайлович", ["foreman"], "А", 1), ("Vargas Núñez Miguel", ["foreman"], "Б", 2),
         ("Новикова Елена Сергеевна", ["surveyor"], "А", 1), ("Herrera Campos Sofía", ["engineer"], "А", 1),
-        ("Морозов Артём Ильич", ["miner", "aux_operator"], "А", 1), ("Ortiz Lagos Tomás", ["trainee"], "А", 1),
+        ("Морозов Артем Ильич", ["miner", "aux_operator"], "А", 1), ("Ortiz Lagos Tomás", ["trainee"], "А", 1),
         ("Белов Роман Олегович", ["bolter"], "А", 1),
     ]
     with open(Path(__file__).resolve().parents[2] / "config" / "staff.yaml", encoding="utf-8") as f:
@@ -272,7 +272,7 @@ def generate(dest: Path, seed: int = 42) -> dict:
     personal = {
         # горнорабочий: Axera DD421 + бурение забоя + вспомогательное оборудование
         21: [{"kind": "machine", "target": "model:Sandvik/DD421"}, {"kind": "work", "target": "drilling"}],
-        # стажёр бурильщика — работает только с наставником (Иванов, таб. 1001)
+        # стажер бурильщика — работает только с наставником (Иванов, таб. 1001)
         22: [{"kind": "machine", "target": "dev_drill"}, {"kind": "work", "target": "drilling"}],
     }
     staff = []
@@ -328,7 +328,7 @@ def _example_iredes() -> str:
       <DrillStartTime>2026-10-05T10:{10 + i:02d}:00Z</DrillStartTime>
     </Hole>""")
     return f"""<?xml version="1.0" encoding="UTF-8"?>
-<!-- Пример отчёта бурения в стиле IREDES (Drill Plan / Quality Log), упрощённо -->
+<!-- Пример отчета бурения в стиле IREDES (Drill Plan / Quality Log), упрощенно -->
 <IREDES>
   <DRPQualityLog>
     <EquipmentId>Boomer №1</EquipmentId>

@@ -67,7 +67,7 @@ def test_starter_models_and_meta(client, H):
 
 
 def test_fresh_install_has_no_migration_items(client, H):
-    """Установка с нуля: демо-персонал с полноценными допусками из демо-данных, без «авто» и без отчёта переноса."""
+    """Установка с нуля: демо-персонал с полноценными допусками из демо-данных, без «авто» и без отчета переноса."""
     E = H["engineer"]
     people = client.get("/api/staff", headers=E).json()
     permits = [x for p in people for x in p["permits"]]
@@ -189,7 +189,7 @@ def test_trainee_needs_mentor_in_same_shift(client, H):
     assert r.status_code == 200, r.text
     r = client.post(f"/api/dispatch/order/{o['id']}/assign", json=body, headers=D)  # на машине наставника
     assert r.status_code == 200, r.text
-    # стажёр без наставника
+    # стажер без наставника
     prof = client.post("/api/staff", json={"full_name": "Новиков Илья", "tab_no": "9001", "professions": ["trainee"],
                                            "shift": 1}, headers=E)
     assert prof.status_code == 200, prof.text
@@ -205,7 +205,7 @@ def test_candidates_admitted_first(client, H):
     ok = [p for p in r["persons"] if p["ok"]]
     assert ok and all(p["ok"] for p in r["persons"][:len(ok)])  # допущенные — первыми
     assert {"Kuznetsov Dmitry", "Muñoz Rojas Pedro"} <= {p["full_name"] for p in ok}
-    miner = next(p for p in r["persons"] if p["full_name"] == "Морозов Артём Ильич")
+    miner = next(p for p in r["persons"] if p["full_name"] == "Морозов Артем Ильич")
     assert not miner["ok"] and "Simba E7 C" in miner["reasons"][0]
     # машины для работы: только станки глубокого бурения; для выбранного человека — с причиной
     r = client.get("/api/dispatch/candidates", params={"work_type": "drilling", "person_id": staff(client, D)["1021"]["id"]},
@@ -261,7 +261,7 @@ def test_coverage_warning_and_copy_rechecks(client, H):
 
 
 def test_migration_of_previous_version(client, H):
-    """Данные прежней версии: машина без модели и названия, бурильщик со старым жёстким кодом профессии."""
+    """Данные прежней версии: машина без модели и названия, бурильщик со старым жестким кодом профессии."""
     from datetime import timedelta
 
     from api import qualify
@@ -363,7 +363,7 @@ def test_ring_direction_and_drill_drive(client, H):
     row = client.get("/api/dispatch/order", params={"date": "2026-11-15", "shift_no": 1}, headers=D).json()["order"]["assignments"][0]
     assert row["direction"] == "down" and "нисходящие" in row["face_name"]
     det = client.get(f"/api/workflow/faces/{fid}", headers=D).json()
-    assert det["rings"]["name"].endswith("(нисходящие)")  # проект вееров забоя переключён на направление наряда
+    assert det["rings"]["name"].endswith("(нисходящие)")  # проект вееров забоя переключен на направление наряда
     # камера без проекта нисходящих вееров / буровая выработка не пройдена
     from sqlalchemy import select
 
@@ -497,7 +497,7 @@ def test_blasted_only_inside_window_and_carry_over(client, H):
     assert r.status_code == 400 and r.json()["detail"]["code"] == "errors.blast_outside_window"
     r = client.post(f"/api/workflow/faces/{fid}/transition", json={"to": "blasted"}, headers=A)
     assert r.json()["detail"]["code"] == "errors.blast_override_reason"
-    # перенос: заряжен, окно прошло → «Ждёт ВР» и алерт диспетчеру
+    # перенос: заряжен, окно прошло → «Ждет ВР» и алерт диспетчеру
     from alerts.main import evaluate
 
     evaluate()

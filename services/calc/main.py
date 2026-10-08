@@ -1,4 +1,4 @@
-"""Сервис calc: расчёты паспортов проходки, вееров, замедлений, поправочных скважин. Без состояния (HPA)."""
+"""Сервис calc: расчеты паспортов проходки, вееров, замедлений, поправочных скважин. Без состояния (HPA)."""
 from __future__ import annotations
 
 from fastapi import HTTPException
@@ -49,7 +49,7 @@ def r_correction(body: dict):
 
 @app.post("/calc/load")
 def load(body: dict):
-    """Нагрузочный расчёт для проверки HPA: n паспортов подряд."""
+    """Нагрузочный расчет для проверки HPA: n паспортов подряд."""
     n = int(body.get("n", 5))
     for _ in range(n):
         passport.design(body["input"])

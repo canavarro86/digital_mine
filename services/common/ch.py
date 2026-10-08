@@ -69,6 +69,23 @@ def ensure_schema() -> None:
     c = client()
     for ddl in SCHEMA:
         c.command(ddl)
+    drop_yo(c)
+
+
+def drop_yo(c) -> None:
+    """«е» с точками (U+0451/U+0401) в продукте не используется: в накопленных событиях — замена на «е».
+    Мутация запускается только для столбцов, где буква есть (ключи сортировки не меняются)."""
+    yo, big = chr(0x451), chr(0x401)
+    cols = c.query("SELECT table, name FROM system.columns WHERE database = currentDatabase() "
+                   "AND type LIKE '%String%' AND is_in_sorting_key = 0").result_rows
+    for table, col in cols:
+        has = f"position(`{col}`, '{yo}') > 0 OR position(`{col}`, '{big}') > 0"
+        try:
+            if c.query(f"SELECT count() FROM `{table}` WHERE {has}").result_rows[0][0]:
+                c.command(f"ALTER TABLE `{table}` UPDATE `{col}` = replaceAll(replaceAll(`{col}`, '{yo}', 'е'), "
+                          f"'{big}', '{chr(0x415)}') WHERE {has}")
+        except Exception as e:  # не мешает запуску сервиса
+            log.warning("clickhouse %s.%s: %s", table, col, e)
 
 
 def query(sql: str, params: dict | None = None) -> list[dict]:

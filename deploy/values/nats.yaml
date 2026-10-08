@@ -20,4 +20,4 @@ reloader:
 natsBox:
   enabled: false
 promExporter:
-  enabled: false   # длину очереди отдаёт сервис ingest (метрика dm_queue_pending)
+  enabled: false   # длину очереди отдает сервис ingest (метрика dm_queue_pending)

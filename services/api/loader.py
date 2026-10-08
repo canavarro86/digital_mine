@@ -124,7 +124,7 @@ def load_package(db: Session, path: Path, activate: bool = True) -> Mine:
             row.params = {**mm.params, **(m.get("params") or {})}
         db.add(row)
     now = utcnow()
-    mentors: dict[str, str] = {}  # стажёр → наставник (табельные номера)
+    mentors: dict[str, str] = {}  # стажер → наставник (табельные номера)
     for p in _yaml(path / "staff.yaml").get("staff", []):
         if db.scalar(select(Person).where(Person.tab_no == p["tab_no"])):
             continue

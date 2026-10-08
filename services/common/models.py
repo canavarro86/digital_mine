@@ -1,4 +1,4 @@
-"""Модели PostgreSQL. Сложные структуры (геометрия, скважины, расчёты) — в JSON-полях."""
+"""Модели PostgreSQL. Сложные структуры (геометрия, скважины, расчеты) — в JSON-полях."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -227,7 +227,7 @@ class TypicalPassport(Base):
     section: Mapped[dict] = mapped_column(J, default=dict)
     f_min: Mapped[float] = mapped_column(Float, default=0)
     f_max: Mapped[float] = mapped_column(Float, default=20)
-    water: Mapped[list] = mapped_column(J, default=list)  # допустимые обводнённости
+    water: Mapped[list] = mapped_column(J, default=list)  # допустимые обводненности
     explosive_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     input: Mapped[dict] = mapped_column(J, default=dict)
     design: Mapped[dict] = mapped_column(J, default=dict)
@@ -263,7 +263,7 @@ class DevPassport(Base):
     name: Mapped[str] = mapped_column(String(256), default="")
     status: Mapped[str] = mapped_column(String(16), default="draft")
     typical_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    parent_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # копия (ИИ, пересчёт)
+    parent_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # копия (ИИ, пересчет)
     input: Mapped[dict] = mapped_column(J, default=dict)
     design: Mapped[dict] = mapped_column(J, default=dict)
     indicators: Mapped[dict] = mapped_column(J, default=dict)
@@ -324,7 +324,7 @@ class Machine(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     mine_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     number: Mapped[str] = mapped_column(String(64))  # номер уникален в пределах рудника
-    name: Mapped[str] = mapped_column(String(128), default="")  # «Axera №48» — выводится в списках и отчётах
+    name: Mapped[str] = mapped_column(String(128), default="")  # «Axera №48» — выводится в списках и отчетах
     type: Mapped[str] = mapped_column(String(32))  # dev_drill, ring_drill, lhd, charger, bolter, aux, other
     model_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # None — нестандартная установка
     model: Mapped[str] = mapped_column(String(64), default="")
@@ -370,9 +370,9 @@ class Person(Base):
     mine_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     full_name: Mapped[str] = mapped_column(String(128))
     tab_no: Mapped[str] = mapped_column(String(32), unique=True)
-    profession: Mapped[str] = mapped_column(String(48))  # основная (первая) профессия — для отчётов
+    profession: Mapped[str] = mapped_column(String(48))  # основная (первая) профессия — для отчетов
     professions: Mapped[list] = mapped_column(J, default=list)  # совмещение: ["miner", "aux_operator"]
-    mentor_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # наставник стажёра
+    mentor_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # наставник стажера
     crew: Mapped[str] = mapped_column(String(32), default="")
     shift: Mapped[int] = mapped_column(Integer, default=1)
     contacts: Mapped[str] = mapped_column(String(128), default="")

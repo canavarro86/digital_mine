@@ -202,7 +202,7 @@ def update_initiation(did: int, body: dict, db: Session = Depends(get_db),
 
 @router.post("/explosives/check")
 def check_explosive(body: dict, db: Session = Depends(get_db), _: CurrentUser = Depends(require("explosives.view"))):
-    """Проверка ВВ на интервал: диаметр не меньше критического, водоустойчивость против обводнённости."""
+    """Проверка ВВ на интервал: диаметр не меньше критического, водоустойчивость против обводненности."""
     e = db.get(Explosive, int(body["explosive_id"]))
     if not e:
         raise HTTPException(404, "errors.not_found")
@@ -345,7 +345,7 @@ def fleet(db: Session = Depends(get_db), user: CurrentUser = Depends(require("fl
 
 
 def _apply_machine(db: Session, mc: Machine, body: dict, mine_id: int) -> None:
-    """Модель из справочника задаёт тип и параметры; поля машины переопределяют их (износ, модернизация).
+    """Модель из справочника задает тип и параметры; поля машины переопределяют их (износ, модернизация).
     Без модели — нестандартная установка: тип и параметры вводятся вручную."""
     number = str(body.get("number", mc.number) or "").strip()
     if not number:
@@ -433,7 +433,7 @@ def _check_permit_target(db: Session, kind: str, target: str) -> None:
 
 @router.get("/staff/permit-targets")
 def permit_targets(db: Session = Depends(get_db), user: CurrentUser = Depends(require("staff.view", "dispatch.view"))):
-    """На что выдаётся допуск: тип машины, модель (справочник моделей), вид работ — с подписями."""
+    """На что выдается допуск: тип машины, модель (справочник моделей), вид работ — с подписями."""
     L = q.Labels(db, user.lang)
     return {
         "machine_types": [{"target": k, "label": L.type_label(k)} for k in q.fleet_types()],

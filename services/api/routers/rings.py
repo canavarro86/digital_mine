@@ -179,7 +179,7 @@ def correction_status(cid: int, body: dict, db: Session = Depends(get_db), user:
         raise HTTPException(404, "errors.not_found")
     cp.status = body["status"]  # accepted / rejected / done
     if body["status"] == "done":
-        # после повторного скана: сколько добрано (по сравнению объёмов недобора)
+        # после повторного скана: сколько добрано (по сравнению объемов недобора)
         an = db.scalar(select(Analysis).where(Analysis.stope_id == cp.stope_id).order_by(Analysis.id.desc()))
         before = float(cp.economics.get("volume_m3", 0))
         after = sum(float(z["volume_m3"]) for z in (an.result.get("underbreak_zones") or [])) if an else before
@@ -193,7 +193,7 @@ def correction_status(cid: int, body: dict, db: Session = Depends(get_db), user:
 
 @router.post("/stopes/{sid}/activate")
 def activate(sid: int, body: dict | None = None, db: Session = Depends(get_db), user: CurrentUser = Depends(EDIT)):
-    """Ввести камеру в работу: проект вееров по умолчанию (утверждён) и очистной блок в рабочем процессе."""
+    """Ввести камеру в работу: проект вееров по умолчанию (утвержден) и очистной блок в рабочем процессе."""
     s = db.get(Stope, sid)
     if not s:
         raise HTTPException(404, "errors.not_found")

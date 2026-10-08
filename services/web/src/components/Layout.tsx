@@ -68,7 +68,7 @@ function Clocks() {
   );
 }
 
-/** «Смена 2 · 08:00–16:00 · ВР в 15:00» и обратный отсчёт до ВР; во время окна — «Идут ВР до 16:00». */
+/** «Смена 2 · 08:00–16:00 · ВР в 15:00» и обратный отсчет до ВР; во время окна — «Идут ВР до 16:00». */
 export function ShiftBadge({ data, now }: { data: any; now: Date }) {
   const { t } = useTranslation();
   const { tz } = useAuth();

@@ -114,7 +114,7 @@ def analyze_dev(design: dict, scan: dict, drill: dict | None, charge: dict | Non
         "overcharge": max(0.0, over_charge_pct - 8) / 4,
     }
     if water in ("flowing", "inflow") and misfires == 0 and kish > 0.85:
-        scores["water"] = 0.0  # вода по геологии есть, но в факте нет её следов
+        scores["water"] = 0.0  # вода по геологии есть, но в факте нет ее следов
     primary, causes, groups = _shares(scores)
     return {
         "kind": "dev",

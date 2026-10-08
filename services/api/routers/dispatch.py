@@ -47,13 +47,13 @@ WORK_FACE_STATUS = {
 }
 WORK_TYPES = list(WORK_FACE_STATUS)
 WORK_FACE_KIND = {"drilling": "dev", "ring_drilling": "stope"}  # проходка — проходческие забои, веера — камеры
-DRILL_DRIVE_OK = {"done"}  # буровая выработка пройдена — из неё можно бурить веера
+DRILL_DRIVE_OK = {"done"}  # буровая выработка пройдена — из нее можно бурить веера
 DIRECTIONS = ("down", "up")
 
 
 def ring_options(db: Session, face: Face) -> list[dict]:
     """Варианты бурения камеры: нисходящие — из верхней выработки, восходящие — из нижней;
-    проект вееров этого направления и буровая выработка с её статусом."""
+    проект вееров этого направления и буровая выработка с ее статусом."""
     st = db.get(Stope, face.stope_id) if face.stope_id else None
     if not st:
         return []
@@ -292,7 +292,7 @@ def check_assignment(db: Session, person: Person | None, machine: Machine | None
             if person and a.person_id == person.id:
                 issues.append({"level": "error", "code": "person_busy", "params": {"person": person.full_name}})
             if machine and a.machine_id == machine.id:
-                # стажёр работает на машине наставника — это не занятость машины
+                # стажер работает на машине наставника — это не занятость машины
                 shared = person is not None and ((L.is_trainee(person) and person.mentor_id == a.person_id)
                                                  or _is_trainee_of(db, L, a.person_id, person))
                 if not shared:
@@ -301,7 +301,7 @@ def check_assignment(db: Session, person: Person | None, machine: Machine | None
 
 
 def blast_in_progress(db: Session, order_id: int | None, lang: str = "ru") -> dict | None:
-    """Идёт окно ВР, а наряд — на текущую смену → людей в забои не назначают («Идут ВР до 08:00»).
+    """Идет окно ВР, а наряд — на текущую смену → людей в забои не назначают («Идут ВР до 08:00»).
     Зона ВР «весь рудник»; варианты «горизонт» и «взрываемые забои» заложены в настройку blast_zone и пока
     действуют так же, как «весь рудник» (безопасная сторона)."""
     from core import shifts as sh
@@ -311,7 +311,7 @@ def blast_in_progress(db: Session, order_id: int | None, lang: str = "ru") -> di
     now = utcnow()
     sc = shift_config(cfg)
     reentry = int(sc.get("reentry_min", 0))
-    # окно ВР идёт сейчас или кончилось, но время допуска людей после ВР ещё не прошло
+    # окно ВР идет сейчас или кончилось, но время допуска людей после ВР еще не прошло
     w = sh.window_at(sc, now, tz) or sh.window_at(sc, now - timedelta(minutes=reentry), tz)
     if not w or now >= w["end"] + timedelta(minutes=reentry):
         return None
@@ -324,7 +324,7 @@ def blast_in_progress(db: Session, order_id: int | None, lang: str = "ru") -> di
 
 
 def _is_trainee_of(db: Session, L: q.Labels, other_id: int | None, person: Person | None) -> bool:
-    """Наставник может работать на той же машине, что и его стажёр."""
+    """Наставник может работать на той же машине, что и его стажер."""
     other = db.get(Person, other_id) if other_id else None
     return bool(other and person and L.is_trainee(other) and other.mentor_id == person.id)
 
@@ -432,7 +432,7 @@ def create_order(body: dict, db: Session = Depends(get_db), user: CurrentUser = 
             sd, sn = _prev_shift(m.config, d, n)
         src = db.scalar(select(ShiftOrder).where(ShiftOrder.mine_id == m.id, ShiftOrder.date == sd, ShiftOrder.shift_no == sn))
         if src:
-            # каждая строка проверяется заново (допуски, исправность, статус забоя); стажёры — после наставников
+            # каждая строка проверяется заново (допуски, исправность, статус забоя); стажеры — после наставников
             when = shift_bounds(m.config, d, n)[0]
             L = q.Labels(db, user.lang)
             rows = list(db.scalars(select(Assignment).where(Assignment.order_id == src.id, Assignment.active.is_(True))))

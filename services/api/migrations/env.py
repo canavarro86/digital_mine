@@ -1,4 +1,4 @@
-"""Alembic: миграции схемы PostgreSQL. Соединение передаётся из api.bootstrap.migrate()."""
+"""Alembic: миграции схемы PostgreSQL. Соединение передается из api.bootstrap.migrate()."""
 from alembic import context
 
 from common.db import get_engine

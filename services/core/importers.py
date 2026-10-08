@@ -270,7 +270,7 @@ def write_las(points: np.ndarray) -> bytes:
 
 # ---------------- IREDES ----------------
 def parse_iredes(data: bytes) -> dict:
-    """Упрощённый разбор IREDES (Drill Plan / Quality Log): скважины с началом/концом, длиной, диаметром."""
+    """Упрощенный разбор IREDES (Drill Plan / Quality Log): скважины с началом/концом, длиной, диаметром."""
     root = ET.fromstring(data)
 
     def strip(tag):
@@ -291,7 +291,7 @@ def parse_iredes(data: bytes) -> dict:
                 elif ct in ("HoleStartPoint", "HoleEndPoint"):
                     xyz = {strip(c.tag): float(c.text) for c in ch if c.text}
                     pfx = "collar" if ct == "HoleStartPoint" else "toe"
-                    # координаты забоя: X — поперёк, Z — вверх; Y — вдоль оси (глубина)
+                    # координаты забоя: X — поперек, Z — вверх; Y — вдоль оси (глубина)
                     h[f"{pfx}_x"], h[f"{pfx}_y"] = xyz.get("PointX"), xyz.get("PointZ")
                     h[f"{pfx}_depth"] = xyz.get("PointY")
                 elif ct == "HoleLength" and ch.text:
@@ -304,7 +304,7 @@ def parse_iredes(data: bytes) -> dict:
     return {"format": "iredes", "kind": "drill_log", "holes": holes, "meta": meta}
 
 
-# ---------------- сопоставление слоёв ----------------
+# ---------------- сопоставление слоев ----------------
 def guess_type(layer: str, name: str = "") -> str:
     s = f"{layer} {name}".lower()
     rules = [("ramp", ("ramp", "decline", "уклон", "rampa")), ("access", ("access", "заезд", "acceso")),

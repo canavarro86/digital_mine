@@ -1,4 +1,4 @@
-"""Отчёты: по забою, буровой, проходчику, смене / суткам / месяцу. Экран (JSON), PDF, CSV; ZIP отчёта смены."""
+"""Отчеты: по забою, буровой, проходчику, смене / суткам / месяцу. Экран (JSON), PDF, CSV; ZIP отчета смены."""
 from __future__ import annotations
 
 import io
@@ -244,7 +244,7 @@ def export(kind: str, fmt: str, lang: str = "ru", period: str = "shift", day: st
 @router.get("/shift-zip")
 def shift_zip(lang: str = "ru", day: str | None = None, shift_no: int | None = None, db: Session = Depends(get_db),
               user: CurrentUser = Depends(VIEW)):
-    """«Выгрузить отчёт смены» → ZIP с PDF и CSV (для планшета или флешки)."""
+    """«Выгрузить отчет смены» → ZIP с PDF и CSV (для планшета или флешки)."""
     m = active_mine(db)
     gen = to_tz(utcnow(), m.config.get("timezone", "UTC")).strftime("%d.%m.%Y %H:%M")
     data = period_report(db, "shift", day, shift_no)

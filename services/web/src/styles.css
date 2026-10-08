@@ -66,7 +66,7 @@ table.t tr:hover td { background: #f9fbfd; } table.t td.num { text-align: right;
 .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; } .kv div:nth-child(odd) { color: var(--muted); }
 pre.code { background: #0f1722; color: #d6e2ef; padding: 10px; border-radius: 6px; overflow: auto; max-height: 300px; font-size: 12px; white-space: pre-wrap; }
 .bar { height: 8px; background: #e8edf3; border-radius: 4px; overflow: hidden; } .bar > div { height: 100%; background: var(--ok); }
-/* подсказка «?», изменённый относительно модели параметр, флажки-«чипы», баннер проверки */
+/* подсказка «?», измененный относительно модели параметр, флажки-«чипы», баннер проверки */
 .hint { display: inline-block; width: 15px; height: 15px; line-height: 15px; text-align: center; border-radius: 50%; background: #e8edf3; color: #354253; font-size: 11px; cursor: help; }
 .changed { color: #8a5b10; }
 .chip { display: inline-flex; gap: 4px; align-items: center; padding: 2px 8px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; cursor: pointer; }

@@ -120,7 +120,7 @@ def _save(db: Session, mine_id: int, items: list[dict]) -> list[int]:
 
 @router.post("/wizard/level")
 def wizard_level(body: dict, db: Session = Depends(get_db), user: CurrentUser = Depends(EDIT)):
-    """Мастер «Новый горизонт». preview=true — только расчёт для показа; иначе сохранение."""
+    """Мастер «Новый горизонт». preview=true — только расчет для показа; иначе сохранение."""
     m = active_mine(db)
     lvl = float(body["level"])
     exists = db.scalar(select(Working).where(Working.mine_id == m.id, Working.level == lvl, Working.type == "access"))

@@ -1,4 +1,4 @@
-# Учётная запись runner'а CI/CD: права только на пространство digital-mine (деплой нашего чарта)
+# Учетная запись runner'а CI/CD: права только на пространство digital-mine (деплой нашего чарта)
 apiVersion: v1
 kind: ServiceAccount
 metadata:

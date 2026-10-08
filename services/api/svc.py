@@ -128,7 +128,7 @@ def explosive_dict(e: Explosive) -> dict:
 
 # ---------------- сервисы ----------------
 def remote(service_url: str, path: str, payload: dict, fallback: Callable[[], Any], timeout: float = 60) -> Any:
-    """POST в соседний сервис; если недоступен — локальный расчёт той же библиотекой (тесты, деградация)."""
+    """POST в соседний сервис; если недоступен — локальный расчет той же библиотекой (тесты, деградация)."""
     if get_settings().db_url.startswith("sqlite"):
         return fallback()
     try:

@@ -71,7 +71,7 @@ def chainage_of(axis: Sequence[Point], p: Point) -> tuple[float, float]:
 
 
 def point_at_elevation(axis: Sequence[Point], z: float) -> tuple[list[float], float] | None:
-    """Первая точка оси на отметке z (для примыкания к автоуклону) и её пикет."""
+    """Первая точка оси на отметке z (для примыкания к автоуклону) и ее пикет."""
     a = np.asarray(axis, dtype=float)
     acc = 0.0
     for i in range(len(a) - 1):
@@ -111,7 +111,7 @@ def resample(axis: Sequence[Point], step: float) -> list[list[float]]:
 
 # ---------------- сечения ----------------
 def section_polygon(section: dict, n_arc: int = 24) -> Polygon:
-    """Контур сечения в координатах забоя: x — поперёк (0 по оси), y — вверх от почвы."""
+    """Контур сечения в координатах забоя: x — поперек (0 по оси), y — вверх от почвы."""
     shape = section.get("shape", "arch")
     w = float(section.get("width", 5.0))
     h = float(section.get("height", 5.0))
@@ -157,7 +157,7 @@ def section_info(section: dict) -> dict:
 
 
 def tube_mesh(axis: Sequence[Point], section: dict, n_pts: int = 12) -> dict:
-    """Упрощённый 3D-каркас выработки: сечение, протянутое вдоль оси (для three.js / DXF)."""
+    """Упрощенный 3D-каркас выработки: сечение, протянутое вдоль оси (для three.js / DXF)."""
     poly = section_polygon(section, n_arc=6)
     ring = list(poly.exterior.coords)[:-1]
     if len(ring) > n_pts:

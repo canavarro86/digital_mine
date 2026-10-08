@@ -123,7 +123,7 @@ def rules_dispatcher(c: Ctx, asg: list[Assignment]) -> None:
         last = {r["machine"]: r for r in rows}
         for a in asg:
             m = machines.get(a.machine_id)
-            if not m or m.label not in last:  # телеметрия идёт по названию машины
+            if not m or m.label not in last:  # телеметрия идет по названию машины
                 continue
             r = last[m.label]
             age = (now - _aware(r["last"])).total_seconds() / 60
@@ -145,7 +145,7 @@ def rules_dispatcher(c: Ctx, asg: list[Assignment]) -> None:
             c.fire("no_qualified_staff", "dispatcher", f"{o.id}:{gap['type']}:{gap['model_id']}",
                    {"machine": gap["machine"], "shift_no": o.shift_no, "date": o.date}, "warning", gap["machine"],
                    [{"type": "open_staff"}])
-    # 8. Забой заряжен, а окно ВР прошло → «Ждёт ВР», алерт с ближайшим окном
+    # 8. Забой заряжен, а окно ВР прошло → «Ждет ВР», алерт с ближайшим окном
     from api.deps import CurrentUser
     from api.routers.workflow import _set_status
     from common.timeutil import shift_config, to_tz
@@ -156,13 +156,13 @@ def rules_dispatcher(c: Ctx, asg: list[Assignment]) -> None:
     system = CurrentUser(None, "system", "service", set(), service=True)
     for f in faces.values():
         if f.status == "charged" and f.status_since and shm.windows_between(sc, _aware(f.status_since), now, tz):
-            _set_status(db, f, "wait_blast", system, "окно ВР прошло — взрыв перенесён")
+            _set_status(db, f, "wait_blast", system, "окно ВР прошло — взрыв перенесен")
         if f.status == "wait_blast":
             nxt = shm.next_window(sc, now, tz)
             c.fire("blast_moved", "dispatcher", f"{f.id}:{f.cycle_no}",
                    {"face": f.name, "next": to_tz(nxt["start"], tz).strftime("%H:%M") if nxt else "—",
                     "next_date": to_tz(nxt["start"], tz).strftime("%d.%m") if nxt else ""}, "warning", f.name)
-    # 3. забой ждёт взрывников
+    # 3. забой ждет взрывников
     wait_h = float(c.th.get("blasters_wait_hours", 2)) / c.time_scale
     for f in faces.values():
         if f.status == "handed" and f.status_since and (now - _aware(f.status_since)).total_seconds() / 3600 > wait_h:

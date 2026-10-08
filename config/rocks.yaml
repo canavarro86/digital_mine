@@ -15,5 +15,5 @@ rocks:
   - {code: ANDESITE, name: "Андезит (вмещающая)", kind: waste, f: 14, ucs: 160, density: 2.75, fracture_cat: 2, fracture_spacing: 1.2, rqd: 80, rmr: 68, water: dry}
   - {code: ANDESITE_FRAC, name: "Андезит трещиноватый", kind: waste, f: 9, ucs: 95, density: 2.7, fracture_cat: 4, fracture_spacing: 0.3, rqd: 40, rmr: 45, water: damp}
   - {code: DIORITE, name: "Диорит", kind: waste, f: 16, ucs: 190, density: 2.85, fracture_cat: 2, fracture_spacing: 1.4, rqd: 85, rmr: 72, water: dry}
-  - {code: CONTACT_ALT, name: "Контакт, изменённые породы", kind: contact, f: 7, ucs: 70, density: 2.65, fracture_cat: 4, fracture_spacing: 0.25, rqd: 35, rmr: 40, water: dripping}
+  - {code: CONTACT_ALT, name: "Контакт, измененные породы", kind: contact, f: 7, ucs: 70, density: 2.65, fracture_cat: 4, fracture_spacing: 0.25, rqd: 35, rmr: 40, water: dripping}
   - {code: HW_WEAK, name: "Слабый висячий бок (серицит)", kind: waste, f: 5, ucs: 45, density: 2.6, fracture_cat: 5, fracture_spacing: 0.08, rqd: 20, rmr: 30, water: damp}

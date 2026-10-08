@@ -63,7 +63,7 @@ def activate(mid: int, db: Session = Depends(get_db), user: CurrentUser = Depend
 
 @router.post("/load")
 def load_mine(body: dict, db: Session = Depends(get_db), user: CurrentUser = Depends(require("mine.settings"))):
-    """Загрузить пакет рудника из папки mines/<имя> (путь задаётся в «Настройках»)."""
+    """Загрузить пакет рудника из папки mines/<имя> (путь задается в «Настройках»)."""
     root = get_settings().root / (get_setting(db, "mines_path") or "mines")
     path = (root / body["package"]).resolve()
     if root.resolve() not in path.parents or not (path / "mine.yaml").exists():
@@ -299,7 +299,7 @@ def import_jobs(db: Session = Depends(get_db), _: CurrentUser = Depends(require(
 @router.post("/import/{job_id}/commit")
 def import_commit(job_id: int, body: dict, db: Session = Depends(get_db),
                   user: CurrentUser = Depends(require("mine.settings"))):
-    """Импорт: workings (с сопоставлением слоёв и сдвигом координат), orebody, stopes."""
+    """Импорт: workings (с сопоставлением слоев и сдвигом координат), orebody, stopes."""
     job = db.get(ImportJob, job_id)
     if not job:
         raise HTTPException(404, "errors.not_found")

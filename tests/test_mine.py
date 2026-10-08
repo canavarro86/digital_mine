@@ -53,7 +53,7 @@ def test_new_level_wizard(mine):
     assert any(w["name"] == "FWD L−300 (N)" for w in en)
     deep = planning.new_level(cfg, ramp, {"level": -340}, "ru")
     ext = [w for w in deep if w["type"] == "ramp"]
-    assert ext and abs(ext[0]["axis"][-1][2] - (-340)) < 1.5  # автоуклон продлён до нового горизонта
+    assert ext and abs(ext[0]["axis"][-1][2] - (-340)) < 1.5  # автоуклон продлен до нового горизонта
     with pytest.raises(ValueError):
         planning.new_level(cfg, ramp, {"level": -340, "extend_ramp": False}, "ru")
 

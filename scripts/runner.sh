@@ -7,9 +7,9 @@ source "$(dirname "$0")/lib.sh"
 RUNNER_VERSION=2.337.0
 NAME=digital-mine-runner
 REPO_URL="${REPO_URL:-https://github.com/canavarro86/digital_mine}"
-if [ "${1:-}" = stop ]; then docker rm -f "$NAME" >/dev/null 2>&1 && c_ok "runner удалён"; exit 0; fi
+if [ "${1:-}" = stop ]; then docker rm -f "$NAME" >/dev/null 2>&1 && c_ok "runner удален"; exit 0; fi
 TOKEN="${1:?Укажите токен регистрации раннера}"
-step "Учётная запись Kubernetes для CI"
+step "Учетная запись Kubernetes для CI"
 kubectl apply -f deploy/runner/rbac.yaml >/dev/null
 SA_TOKEN=$(kubectl -n "$NS" create token ci-deployer --duration=8760h)
 CA=$(kubectl config view --raw -o jsonpath='{.clusters[0].cluster.certificate-authority-data}')

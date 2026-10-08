@@ -42,4 +42,6 @@ USER 0
 RUN pip install --root-user-action=ignore -r /tmp/requirements-dev.txt
 USER 1000
 COPY tests ./tests
+# README — для проверки текстов продукта (tests/test_locales.py)
+COPY README.md ./README.md
 CMD ["pytest", "-q", "tests"]

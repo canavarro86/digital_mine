@@ -1,8 +1,8 @@
 """Веера глубоких скважин (очистная выемка) и поправочные скважины.
 
 Плоскость веера перпендикулярна оси бурового орта (БДО). Локальные координаты веера: u — по простиранию
-(поперёк орта), v — по вертикали (отметка). Положение веера вдоль орта — x (от лежачего к висячему боку).
-ЛНС — формула Лангефорса с поправками на погрешность бурения. См. README, раздел «Методики расчётов».
+(поперек орта), v — по вертикали (отметка). Положение веера вдоль орта — x (от лежачего к висячему боку).
+ЛНС — формула Лангефорса с поправками на погрешность бурения. См. README, раздел «Методики расчетов».
 """
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def _toes(boundary: Polygon, collar: tuple[float, float], spacing: float, stando
 
 
 def design_rings(inp: dict, stope: dict) -> dict:
-    """Расчёт вееров камеры. inp: explosive, rock(ore), d_mm, direction(up/down/mixed), standoff, ..."""
+    """Расчет вееров камеры. inp: explosive, rock(ore), d_mm, direction(up/down/mixed), standoff, ..."""
     expl = inp["explosive"]
     ore = inp.get("rock") or {}
     d = float(inp.get("hole_diameter", 89))
@@ -259,7 +259,7 @@ def holes_csv(res: dict) -> str:
 
 
 def recalc_actual(res: dict, actual: list[dict]) -> dict:
-    """Пересчёт вееров по факту бурения Simba: длины, недобур, заблокированные скважины → заряды.
+    """Пересчет вееров по факту бурения Simba: длины, недобур, заблокированные скважины → заряды.
     actual: [{ring, id, length, deviation_pct, drilled, status}]. Соседи заблокированной скважины в веере
     получают до +10 % заряда (в пределах длины), сама скважина исключается."""
     import copy

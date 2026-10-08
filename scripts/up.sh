@@ -7,7 +7,7 @@ step "1. Проверки"
 docker info >/dev/null 2>&1 || { c_err "Docker недоступен"; exit 1; }
 c_ok "Docker $(docker version -f '{{.Server.Version}}')"
 AVAIL=$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo)
-if [ "$AVAIL" -lt 5000 ]; then c_warn "Свободно ${AVAIL} МБ ОЗУ (< 5 ГБ). Стек займёт ≈5 ГБ — закройте лишние программы (браузеры)."; else c_ok "Свободно ${AVAIL} МБ ОЗУ"; fi
+if [ "$AVAIL" -lt 5000 ]; then c_warn "Свободно ${AVAIL} МБ ОЗУ (< 5 ГБ). Стек займет ≈5 ГБ — закройте лишние программы (браузеры)."; else c_ok "Свободно ${AVAIL} МБ ОЗУ"; fi
 if ! cluster_exists && ss -tln | grep -q ":$HTTP_PORT "; then c_err "Порт $HTTP_PORT занят другим процессом. Остановлено."; ss -tlnp | grep ":$HTTP_PORT "; exit 1; fi
 c_ok "Порт $HTTP_PORT"
 

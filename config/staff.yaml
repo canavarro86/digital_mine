@@ -12,7 +12,7 @@ work_kinds:
   - {code: support, title: {ru: "Крепление", en: "Ground support", es: "Fortificación"}}
   - {code: scaling, title: {ru: "Оборка", en: "Scaling", es: "Acuñadura"}}
   - {code: mucking, title: {ru: "Уборка горной массы (ПДМ)", en: "Mucking (LHD)", es: "Limpieza de marina (LHD)"}}
-  - {code: survey, title: {ru: "Маркшейдерская съёмка", en: "Survey", es: "Topografía"}}
+  - {code: survey, title: {ru: "Маркшейдерская съемка", en: "Survey", es: "Topografía"}}
   - {code: supervision, title: {ru: "Руководство сменой", en: "Shift supervision", es: "Supervisión de turno"}}
   - {code: aux, requires_permit: false, title: {ru: "Вспомогательные работы (доставка, транспорт)", en: "Auxiliary work (haulage, delivery)", es: "Trabajos auxiliares (transporte)"}}
 
@@ -51,10 +51,10 @@ professions:
     permits: [{kind: work, target: supervision}]
   - code: trainee
     trainee: true
-    title: {ru: "Стажёр", en: "Trainee", es: "Aprendiz"}
+    title: {ru: "Стажер", en: "Trainee", es: "Aprendiz"}
     permits: []
 
-# Профессии прежней версии (жёсткий список) → новые коды. driller уточняется по допускам человека.
+# Профессии прежней версии (жесткий список) → новые коды. driller уточняется по допускам человека.
 legacy:
   driller: [dev_driller]
   blaster: [blaster]

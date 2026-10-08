@@ -1,8 +1,8 @@
 """Эмулятор рудника и пульт (раздел 15.4).
 
-Ведёт буровые (Boomer, Simba), ПДМ и зарядную машину по наряду, проходит все статусы забоев через API
-(как диспетчер, инженер, взрывники, маркшейдер), генерирует отчёты бурения, журналы заряжания и сканы
-с отклонениями по включённым сценариям. Каждый цикл несёт эталон (ожидаемая причина) для проверки анализатора.
+Ведет буровые (Boomer, Simba), ПДМ и зарядную машину по наряду, проходит все статусы забоев через API
+(как диспетчер, инженер, взрывники, маркшейдер), генерирует отчеты бурения, журналы заряжания и сканы
+с отклонениями по включенным сценариям. Каждый цикл несет эталон (ожидаемая причина) для проверки анализатора.
 Время событий — реальное; скорость ×1…×500 сжимает длительность работ.
 """
 from __future__ import annotations
@@ -51,7 +51,7 @@ class Api:
     def __init__(self):
         s = get_settings()
         # без keep-alive: каждое соединение заново балансируется Service между подами api,
-        # иначе вся нагрузка эмулятора идёт в один под и HPA добавляет пустые реплики
+        # иначе вся нагрузка эмулятора идет в один под и HPA добавляет пустые реплики
         self.c = httpx.AsyncClient(base_url=s.api_url, timeout=120,
                                    limits=httpx.Limits(max_keepalive_connections=0),
                                    headers={"x-internal-token": s.internal_token, "x-acting-user": "emulator"})
@@ -245,7 +245,7 @@ class Emulator:
             if not nxt:
                 continue
             if nxt == "blasted" and not self.blast_now and self.speed <= 1:
-                continue  # ×1: заряжен — ждёт окна ВР (вне окна сервер переводит забой в «Ждёт ВР»)
+                continue  # ×1: заряжен — ждет окна ВР (вне окна сервер переводит забой в «Ждет ВР»)
             need = STEP_H.get(st, 0.5)
             if st == "handed" and "blasters_late" in self.scenarios:
                 need = 2.5 + 2 * K[self.scenarios["blasters_late"]]
@@ -334,7 +334,7 @@ class Emulator:
             self.note(f"{row['machine']}: {f['name']} обурен", scenario=s)
 
     async def restore_scenario(self, fs: dict, det: dict) -> None:
-        """После перезапуска эмулятора сценарий цикла берётся из отчёта буровой."""
+        """После перезапуска эмулятора сценарий цикла берется из отчета буровой."""
         if "scenario" not in fs:
             sc = ((det.get("drill_report") or {}).get("summary") or {}).get("scenario") or {}
             fs["scenario"], fs["k"] = sc.get("name", "none"), float(sc.get("k", 0))
@@ -566,7 +566,7 @@ async def load(body: dict):
 
 @app.on_event("startup")
 async def autostart() -> None:
-    """Автозапуск после рестарта пода, если эмулятор был включён (настройка emulator.running)."""
+    """Автозапуск после рестарта пода, если эмулятор был включен (настройка emulator.running)."""
     async def _later():
         await asyncio.sleep(30)
         try:

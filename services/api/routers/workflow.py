@@ -1,4 +1,4 @@
-"""Рабочий процесс забоя: статусы и переходы по ролям, отчёт буровой, пересчёт паспорта и замедлений по факту,
+"""Рабочий процесс забоя: статусы и переходы по ролям, отчет буровой, пересчет паспорта и замедлений по факту,
 журнал заряжания, скан, анализ. Проходка (dev) и очистной блок (stope)."""
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ def next_statuses(face: Face) -> list[str]:
     fl = flow(face)
     if face.status in ("done",):
         return []
-    if face.status in ("charged", "wait_blast"):  # взрыв в окне ВР; окно прошло — «Ждёт ВР»
+    if face.status in ("charged", "wait_blast"):  # взрыв в окне ВР; окно прошло — «Ждет ВР»
         return ["blasted", "wait_blast"] if face.status == "charged" else ["blasted"]
     i = fl.index(face.status) if face.status in fl else -1
     if i == len(fl) - 1:
@@ -234,7 +234,7 @@ def transition(fid: int, body: dict, db: Session = Depends(get_db), user: Curren
     return {"status": f.status}
 
 
-# ---------------- отчёт буровой ----------------
+# ---------------- отчет буровой ----------------
 def normalize_dev_holes(design: dict, holes: list[dict]) -> list[dict]:
     """Факт по шпурам → координаты устья/конца, отклонение от паспорта (% длины)."""
     by = {h["id"]: h for h in design["holes"]}
@@ -324,7 +324,7 @@ async def drill_report_file(fid: int, file: UploadFile = File(...), machine_id: 
                               "source": "file", "file_key": key}, db, user)
 
 
-# ---------------- пересчёт по факту ----------------
+# ---------------- пересчет по факту ----------------
 @router.post("/faces/{fid}/recalc")
 def recalc(fid: int, db: Session = Depends(get_db), user: CurrentUser = Depends(require("recalc.edit")), auto: bool = False):
     f = db.get(Face, fid)
@@ -514,7 +514,7 @@ def analyze(fid: int, db: Session = Depends(get_db), user: CurrentUser = Depends
 
 
 def _with_obs(geo: dict, obs: dict) -> dict:
-    """Наблюдения при съёмке (приток воды, кливаж, вывалы, отслоение висячего бока) дополняют геологию интервала."""
+    """Наблюдения при съемке (приток воды, кливаж, вывалы, отслоение висячего бока) дополняют геологию интервала."""
     geo = dict(geo)
     for k, v in obs.items():
         if k == "faults":
@@ -553,7 +553,7 @@ def analyses(limit: int = 200, kind: str | None = None, db: Session = Depends(ge
 
 @router.get("/scenario-check")
 def scenario_check(db: Session = Depends(get_db), _: CurrentUser = Depends(VIEW)):
-    """Сверка анализатора с эталонами эмулятора: доля правильно определённых причин."""
+    """Сверка анализатора с эталонами эмулятора: доля правильно определенных причин."""
     rows = [a for a in db.scalars(select(Analysis).order_by(Analysis.id.desc()).limit(500)) if (a.scenario or {}).get("expected")]
     ok = sum(1 for a in rows if a.causes.get("primary") == a.scenario["expected"])
     by: dict[str, dict] = {}

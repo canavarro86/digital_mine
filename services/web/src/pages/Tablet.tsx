@@ -4,7 +4,7 @@ import { Badge } from "../components/ui";
 import { api } from "../lib/api";
 import { useApi } from "../lib/hooks";
 
-/** Упрощённая страница для бурильщика и взрывника: крупные кнопки, ввод по шпурам, офлайн-очередь в браузере. */
+/** Упрощенная страница для бурильщика и взрывника: крупные кнопки, ввод по шпурам, офлайн-очередь в браузере. */
 const QKEY = "dm_tablet_queue";
 type Item = { path: string; body: any; ts: string; label: string };
 const readQ = (): Item[] => { try { return JSON.parse(localStorage.getItem(QKEY) || "[]"); } catch { return []; } };

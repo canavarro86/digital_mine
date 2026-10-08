@@ -42,7 +42,7 @@ async def http_error(request: Request, exc: HTTPException):
 
 @app.on_event("startup")
 def startup() -> None:
-    """Миграции и начальные данные до приёма запросов (идемпотентно, с блокировкой в PostgreSQL)."""
+    """Миграции и начальные данные до приема запросов (идемпотентно, с блокировкой в PostgreSQL)."""
     import time
 
     from .bootstrap import run_all
@@ -51,7 +51,7 @@ def startup() -> None:
         try:
             log.info("bootstrap: %s", run_all())
             return
-        except Exception as e:  # база ещё не готова
+        except Exception as e:  # база еще не готова
             log.warning("bootstrap попытка %d: %s", attempt + 1, e)
             time.sleep(5)
     raise RuntimeError("bootstrap failed")

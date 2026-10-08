@@ -97,7 +97,7 @@ def validate_table(table: list[dict]) -> list[dict]:
 
 
 def validate_windows(table: list[dict], windows: list[dict]) -> list[dict]:
-    """Окно ВР лежит внутри своей смены (с учётом перехода через полночь); окна смены не пересекаются."""
+    """Окно ВР лежит внутри своей смены (с учетом перехода через полночь); окна смены не пересекаются."""
     by_no = {r["no"]: r for r in table}
     errs = []
     seen: dict[int, list[tuple[int, int]]] = {}
@@ -197,7 +197,7 @@ def windows(cfg: dict, shift_date: str, no: int, tz_name: str) -> list[dict]:
 
 
 def window_at(cfg: dict, now: datetime, tz_name: str) -> dict | None:
-    """Окно ВР, которое идёт сейчас (в текущей или предыдущей смене)."""
+    """Окно ВР, которое идет сейчас (в текущей или предыдущей смене)."""
     sh = current(cfg, now, tz_name)
     for d, n in ((sh["date"], sh["shift_no"]), previous(cfg, sh["date"], sh["shift_no"], tz_name)):
         for w in windows(cfg, d, n, tz_name):

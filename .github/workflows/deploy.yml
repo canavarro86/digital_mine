@@ -1,4 +1,4 @@
-# Зелёный CI на пуше в main → сборка образов → GHCR → деплой на кластер через self-hosted runner → проверка →
+# Зеленый CI на пуше в main → сборка образов → GHCR → деплой на кластер через self-hosted runner → проверка →
 # откат при ошибке. Красный CI — деплоя нет. Ручной запуск (workflow_dispatch) деплоит выбранный коммит, только если
 # последний запуск CI для него завершился успешно.
 name: Deploy
@@ -37,11 +37,11 @@ jobs:
           if [ -z "$run" ]; then
             echo "::error::CI для коммита $SHA не запускался — деплой остановлен"; exit 1
           elif [ "$status" != completed ]; then
-            echo "::error::CI для коммита $SHA ещё идёт ($status): $url — дождитесь окончания"; exit 1
+            echo "::error::CI для коммита $SHA еще идет ($status): $url — дождитесь окончания"; exit 1
           elif [ "$conclusion" != success ]; then
-            echo "::error::CI для коммита $SHA не прошёл ($conclusion): $url — деплой остановлен"; exit 1
+            echo "::error::CI для коммита $SHA не прошел ($conclusion): $url — деплой остановлен"; exit 1
           fi
-          echo "CI зелёный: $url"
+          echo "CI зеленый: $url"
       - uses: actions/checkout@v5
         with:
           ref: ${{ env.SHA }}

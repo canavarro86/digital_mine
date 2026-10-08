@@ -1,5 +1,5 @@
 """Паспорта БВР: библиотека врубов, типовые паспорта (версии, согласование, назначение, автоподбор),
-паспорт на проходку забоя (расчёт, редактор, утверждение, экспорт PDF/DXF/CSV)."""
+паспорт на проходку забоя (расчет, редактор, утверждение, экспорт PDF/DXF/CSV)."""
 from __future__ import annotations
 
 import copy
@@ -36,7 +36,7 @@ STATUS_FLOW = {"draft": {"review", "archived"}, "review": {"approved", "draft"},
                "archived": {"draft"}}
 
 
-# ---------------- расчёт ----------------
+# ---------------- расчет ----------------
 def compute(inp: dict) -> dict:
     res = calc("/calc/passport/design", {"input": inp}, lambda: passport.design(inp))
     errs = [w for w in res.get("warnings", []) if w["level"] == "error"]
@@ -192,7 +192,7 @@ def typical_update(tid: int, body: dict, db: Session = Depends(get_db), user: Cu
         return _tp_out(tp)
     tp.version += 1
     if tp.status == "approved":
-        tp.status = "draft"  # изменение утверждённого → новая версия на согласование
+        tp.status = "draft"  # изменение утвержденного → новая версия на согласование
     db.add(TypicalPassportVersion(passport_id=tp.id, version=tp.version, data={"input": tp.input, "indicators": tp.indicators},
                                   changes=changes, changed_by=user.username, note=body.get("note", "")))
     audit(db, user, "typical_update", "typical", tid, {"version": tp.version, "changes": len(changes)})
@@ -336,7 +336,7 @@ def dev_create(body: dict, db: Session = Depends(get_db), user: CurrentUser = De
 
 @router.put("/dev/{pid}")
 def dev_update(pid: int, body: dict, db: Session = Depends(get_db), user: CurrentUser = Depends(EDIT)):
-    """input — пересчёт раскладки; holes — сохранение отредактированных шпуров (с пересчётом показателей)."""
+    """input — пересчет раскладки; holes — сохранение отредактированных шпуров (с пересчетом показателей)."""
     dp = db.get(DevPassport, pid)
     if not dp:
         raise HTTPException(404, "errors.not_found")
@@ -367,7 +367,7 @@ def dev_update(pid: int, body: dict, db: Session = Depends(get_db), user: Curren
 
 @router.post("/dev/{pid}/evaluate")
 def dev_evaluate(pid: int, body: dict, db: Session = Depends(get_db), _: CurrentUser = Depends(EDIT)):
-    """Пересчёт «сразу» при перетаскивании шпура в редакторе — без сохранения."""
+    """Пересчет «сразу» при перетаскивании шпура в редакторе — без сохранения."""
     dp = db.get(DevPassport, pid)
     if not dp:
         raise HTTPException(404, "errors.not_found")

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Генерирует пароли сервисов в .secrets/ (один раз) и создаёт Secret dm-secrets в кластере.
+# Генерирует пароли сервисов в .secrets/ (один раз) и создает Secret dm-secrets в кластере.
 source "$(dirname "$0")/lib.sh"
 mkdir -p .secrets && chmod 700 .secrets
 F=.secrets/services.env

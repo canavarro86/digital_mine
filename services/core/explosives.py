@@ -33,7 +33,7 @@ def s_anfo(expl: dict) -> float:
 
 
 def check(expl: dict, hole_d_mm: float, water: str) -> list[dict]:
-    """Ошибки и предупреждения: критический диаметр и водоустойчивость против обводнённости."""
+    """Ошибки и предупреждения: критический диаметр и водоустойчивость против обводненности."""
     out: list[dict] = []
     crit = float(expl.get("crit_diameter") or 0)
     if hole_d_mm < crit:

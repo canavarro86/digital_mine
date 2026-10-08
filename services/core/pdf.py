@@ -1,4 +1,4 @@
-"""PDF (WeasyPrint): паспорт проходки «как настоящий», веера, отчёты. Все надписи — через t(key, lang)."""
+"""PDF (WeasyPrint): паспорт проходки «как настоящий», веера, отчеты. Все надписи — через t(key, lang)."""
 from __future__ import annotations
 
 import html
@@ -109,7 +109,7 @@ def rings_pdf(res: dict, t: Callable[[str], str], meta: dict) -> bytes:
 
 
 def table_pdf(title: str, subtitle: str, sections: list[dict]) -> bytes:
-    """Отчёт: секции [{title, columns: [(key, label)], rows: [...], kv: [(label, value)]}]."""
+    """Отчет: секции [{title, columns: [(key, label)], rows: [...], kv: [(label, value)]}]."""
     parts = [f"<h1>{_e(title)}</h1><div class='small'>{_e(subtitle)}</div>"]
     for s in sections:
         parts.append(f"<h2>{_e(s.get('title', ''))}</h2>")

@@ -1,5 +1,5 @@
 # Внешние компоненты + наш чарт. Запуск: make up (или helmfile -f deploy/helmfile.yaml sync)
-# Пароли не хранятся здесь: все чарты читают Secret dm-secrets (создаёт scripts/up.sh из .secrets/).
+# Пароли не хранятся здесь: все чарты читают Secret dm-secrets (создает scripts/up.sh из .secrets/).
 repositories:
   - name: groundhog2k
     url: https://groundhog2k.github.io/helm-charts/

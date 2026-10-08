@@ -1,8 +1,8 @@
 """Паспорт БВР на проходку.
 
 Удельный расход — методика Покровского; раскладка вруба, отбойных, контурных и подошвенных шпуров —
-методика Холмберга (Holmberg, 1982) на основе формул Лангефорса. Формулы и источники — README, раздел «Методики расчётов».
-Координаты забоя: x — поперёк выработки (0 — ось), y — вверх от почвы, м.
+методика Холмберга (Holmberg, 1982) на основе формул Лангефорса. Формулы и источники — README, раздел «Методики расчетов».
+Координаты забоя: x — поперек выработки (0 — ось), y — вверх от почвы, м.
 """
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ def expected_kish(rock: dict, depth: float, cut_type: str, explosive: dict) -> f
 
 # ---------------- Холмберг ----------------
 def rock_constant(f: float) -> float:
-    """c ≈ 0,4 кг/м³ для средней породы; растёт с крепостью."""
+    """c ≈ 0,4 кг/м³ для средней породы; растет с крепостью."""
     return round(0.30 + 0.0125 * f, 3)
 
 
@@ -158,7 +158,7 @@ def _points_along(line: LineString, spacing: float, include_ends: bool = True) -
 
 
 def design(inp: dict) -> dict:
-    """Полный расчёт паспорта: раскладка по Холмбергу, согласованная с удельным расходом Покровского.
+    """Полный расчет паспорта: раскладка по Холмбергу, согласованная с удельным расходом Покровского.
     Если расход по раскладке < 80 % от Покровского, ЛНС и расстояния уменьшаются (до 3 итераций, не более чем на 35 %)."""
     scale = float(inp.get("burden_scale") or 1.0)
     res = _design(inp, scale)
@@ -339,7 +339,7 @@ def _dedupe(holes: list[dict], min_dist: float, min_inner: float = 0.0) -> list[
     return out
 
 
-# ---------------- оценка/пересчёт по положению шпуров ----------------
+# ---------------- оценка/пересчет по положению шпуров ----------------
 def _nn(holes: list[dict], key=("x", "y")) -> list[float]:
     pts = np.array([[h[key[0]], h[key[1]]] for h in holes]) if holes else np.zeros((0, 2))
     out = []
@@ -538,9 +538,9 @@ def indicators(result: dict) -> dict:
     }
 
 
-# ---------------- пересчёт по факту бурения ----------------
+# ---------------- пересчет по факту бурения ----------------
 def recalc_actual(result: dict, actual_holes: list[dict]) -> dict:
-    """actual_holes: {id, collar_x, collar_y, toe_x, toe_y, length, drilled}. Возвращает пересчёт."""
+    """actual_holes: {id, collar_x, collar_y, toe_x, toe_y, length, drilled}. Возвращает пересчет."""
     import copy
 
     res = copy.deepcopy(result)
@@ -552,7 +552,7 @@ def recalc_actual(result: dict, actual_holes: list[dict]) -> dict:
         h["design_x"], h["design_y"], h["design_length"] = h["x"], h["y"], h.get("length", depth)
         h["design_charge_kg"] = h.get("charge_kg", 0)
         if h["type"] == "empty" and a is None:
-            h["toe_x"], h["toe_y"] = h["x"], h["y"]  # холостые в отчёте станка могут отсутствовать
+            h["toe_x"], h["toe_y"] = h["x"], h["y"]  # холостые в отчете станка могут отсутствовать
             continue
         if a is None or not a.get("drilled", True):
             h["not_drilled"] = True

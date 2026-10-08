@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/component: {{ $name }}
 spec:
   {{- if not $svc.hpa }}
-  {{- /* при HPA число подов ведёт HPA (minReplicas = replicas), иначе helm сбрасывал бы его при каждом деплое */}}
+  {{- /* при HPA число подов ведет HPA (minReplicas = replicas), иначе helm сбрасывал бы его при каждом деплое */}}
   replicas: {{ $svc.replicas }}
   {{- end }}
   {{- with $svc.strategy }}

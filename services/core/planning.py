@@ -51,7 +51,7 @@ def make_name(templates: dict, lang: str, wtype: str, level: float | None = None
 
 
 def normalize_name(name: str) -> str:
-    s = name.lower().replace("−", "-").replace("—", "-").replace("ё", "е")
+    s = name.lower().replace("−", "-").replace("—", "-").replace("е", "е")
     return re.sub(r"[\s_.()№#]+", "", s)
 
 

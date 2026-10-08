@@ -34,7 +34,7 @@ zeroDowntime: &zeroDowntime
   preStopSleep: 10
 
 # Сервисы на Python: один образ, разные команды.
-# preStopSleep у calc, importer, analyzer: api ходит к ним через ClusterIP, пауза даёт kube-proxy убрать старый под
+# preStopSleep у calc, importer, analyzer: api ходит к ним через ClusterIP, пауза дает kube-proxy убрать старый под
 # из Service до SIGTERM (иначе запрос api на переключении получает connection refused → 502 пользователю).
 # replicas — число подов. Если у сервиса есть hpa, replicas = minReplicas HPA (поле replicas в Deployment не пишется).
 services:

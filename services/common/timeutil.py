@@ -1,4 +1,4 @@
-"""Время: в базе UTC; смены и отчёты — по часовому поясу рудника."""
+"""Время: в базе UTC; смены и отчеты — по часовому поясу рудника."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -23,7 +23,7 @@ def shift_config(mine_cfg: dict) -> dict:
 
 
 def current_shift(mine_cfg: dict, now: datetime | None = None) -> dict:
-    """Номер смены, дата смены (дата её начала) и границы (UTC) по времени рудника."""
+    """Номер смены, дата смены (дата ее начала) и границы (UTC) по времени рудника."""
     from core import shifts
 
     tz = mine_cfg.get("timezone", "UTC")

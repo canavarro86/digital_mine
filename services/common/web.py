@@ -1,4 +1,4 @@
-"""Фабрика FastAPI-приложений: /healthz, /metrics, JSON-логи, счётчики запросов."""
+"""Фабрика FastAPI-приложений: /healthz, /metrics, JSON-логи, счетчики запросов."""
 from __future__ import annotations
 
 import json

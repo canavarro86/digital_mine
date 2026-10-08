@@ -1,5 +1,5 @@
 """Сквозные проверки API на SQLite: роли, полный цикл забоя тремя ролями, геология и ВВ, ИИ (демо, кэш, бюджет),
-отчёты на трёх языках, новый язык без правки кода."""
+отчеты на трех языках, новый язык без правки кода."""
 import json
 import os
 from pathlib import Path
@@ -37,7 +37,7 @@ def test_login_and_roles(client, H):
     assert client.get("/api/admin/users", headers=H["dispatcher"]).status_code == 403
     assert client.get("/api/settings", headers=H["engineer"]).status_code == 403
     assert client.get("/api/admin/users", headers=H["admin"]).status_code == 200
-    # диспетчер видит паспорта, но не создаёт
+    # диспетчер видит паспорта, но не создает
     assert client.get("/api/passports/dev", headers=H["dispatcher"]).status_code == 200
     assert client.post("/api/passports/dev", json={}, headers=H["dispatcher"]).status_code == 403
     # инженер не переставляет
@@ -111,7 +111,7 @@ def test_full_cycle_three_roles(client, H):
           for h in rc["holes"] if h["type"] != "empty" and not h.get("not_drilled")]
     assert client.post(f"/api/workflow/faces/{fid}/charge-log", json={"holes": ch}, headers=D).status_code == 200
     assert client.get(f"/api/workflow/faces/{fid}", headers=D).json()["status"] == "charged"
-    # окна ВР на всю смену — взрыв разрешён в любое время теста (правило окон проверяется в test_patch01)
+    # окна ВР на всю смену — взрыв разрешен в любое время теста (правило окон проверяется в test_patch01)
     assert client.put("/api/mine/config", json={"shifts": {"table": [{"no": 1, "start": "08:00", "end": "20:00"},
                                                                      {"no": 2, "start": "20:00", "end": "08:00"}],
                                                            "blast_windows": [{"shift": 1, "start": "08:00", "end": "20:00"},

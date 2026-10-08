@@ -34,7 +34,7 @@ ai:
 
 telegram:
   enabled: false
-  bot_token: ""   # задаётся в интерфейсе или через TELEGRAM_BOT_TOKEN
+  bot_token: ""   # задается в интерфейсе или через TELEGRAM_BOT_TOKEN
   chat_id: ""
 
 alerts:

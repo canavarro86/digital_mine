@@ -6,7 +6,7 @@ import io
 import ezdxf
 from ezdxf.enums import TextEntityAlignment
 
-STATUS_COLOR = {"planned": 5, "driving": 2, "done": 3, "closed": 8}  # ACI: синий, жёлтый, зелёный, серый
+STATUS_COLOR = {"planned": 5, "driving": 2, "done": 3, "closed": 8}  # ACI: синий, желтый, зеленый, серый
 TYPE_COLOR = {"empty": 8, "cut": 1, "stoping": 3, "helper": 4, "contour": 5, "lifter": 6}
 
 
