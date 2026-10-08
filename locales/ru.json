@@ -1,8 +1,8 @@
 {
-  "_meta": {"name": "Русский великий и могучий", "code": "ru"},
+  "_meta": {"name": "Русский", "code": "ru"},
   "menu": {
-    "groups": {"work": "Работа", "mine": "Рудничок", "blasting": "БВР aka шмалялово", "catalogs": "Справочники", "analytics": "Анализ", "admin": "Администрирование"},
-    "dashboard": "Дашбордик", "board": "Смена сейчас", "dispatch": "Наряд и расстановка", "faces": "Забои", "tablet": "Планшет", "alerts": "Алерты",
+    "groups": {"work": "Работа", "mine": "Рудник", "blasting": "БВР", "catalogs": "Справочники", "analytics": "Анализ", "admin": "Администрирование"},
+    "dashboard": "Дашборд", "board": "Смена сейчас", "dispatch": "Наряд и расстановка", "faces": "Забои", "tablet": "Планшет", "alerts": "Алерты",
     "mine3d": "3D-вид рудника", "workings": "Выработки", "import": "Импорт", "mine": "Рудник", "passports": "Паспорта проходки",
     "typical": "Типовые паспорта", "rings": "Веера и камеры", "geology": "Геология", "explosives": "ВВ и СИ", "fleet": "Флот", "staff": "Персонал",
     "analysis": "Анализ", "reports": "Отчёты", "ai": "ИИ", "grafana": "Grafana", "settings": "Настройки", "users": "Пользователи и роли",
